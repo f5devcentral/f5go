@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% set popularLinks = L.getPopularLinks() %}
+<!-- {% set username = getSSOUsername(False) %} -->
+
+{% from "listinc.html" import renderlink, clickstats with context %}
+
+{% block titlekeyword %}{{ keyword }}{% endblock %}
+{% block keyword %}{{ keyword }}{% endblock %}
+
+{% block body %}
+
+<div class="row-fluid">
+
+<h3 class="center">{{ L.name }}</h3>
+  <div class="column span8 offset2">
+
+  <table class="table table-striped">
+{% if L.linkid > 0 %}
+  <tr>
+  <td colspan="3">
+    <form action="/_setbehavior_" style="margin: 0; text-align: center;">
+    <input type="hidden" name="keyword" value="{{ keyword }}"/>
+    <b><a href="/{{ keyword|escapekeyword }}">go/{{ keyword }}</a></b> redirects to <select name="behavior" {% if not username %}disabled="true"{% endif %}>
+       <option value="list" {% if L._url == "list" %}selected{% endif %}>this list of links</option>
+       <option value="freshest" {% if L._url == "freshest" %}selected{% endif %}>the freshest link</option>
+       <option value="top" {% if L._url == "top" %}selected{% endif %}>the most used link</option>
+       <option value="random" {% if L._url == "random" %}selected{% endif %}>a random link</option>
+       {% for link in popularLinks %}
+           <option value="{{ link.linkid }}" {% if L._url == str(link.linkid) %}selected{% endif %}>{{ link.title or link._url }}</option>
+       {% endfor %}
+     </select>
+     {% if username %}
+     <input type="submit" value="Change Behavior"/>
+     {% endif %}
+    </form>
+    </td>
+    </tr>
+{% endif %}
+{% if L.linkid != -1 %}
+    <tr>
+    <td colspan="3">
+    <h4 class="center">
+  {% if username %}
+    <a class="center" href="/_add_/{{ keyword|escapekeyword }}">Add new link</a>
+  {% else %}
+    <a href="/_login_?redirect={{ getCurrentEditableUrlQuoted() }}">Login to edit this list</a>
+  {% endif %}
+  </h4>
+    </td>
+  </tr>
+{% endif %}
+
+  {% for idx, link in enumerate(popularLinks): %}
+      {{ renderlink(idx+1, link, username) }}
+  {% else %}
+      <tr>
+      <td><h4 class="center">No links for this keyword.</h4>
+      </td>
+      </tr>
+  {% endfor %}
+  </table>
+  </div>
+
+  </div>
+
+{{ clickstats(L) }}
+{% endblock body %}

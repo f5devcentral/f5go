@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% set username = getSSOUsername(False) %}
+{% set topLinks = byClicks(g_db.getNonFolders()) %}
+{% set folderLinks = byClicks(g_db.getSpecialLinks()) %}
+
+{% from "listinc.html" import renderlink %}
+
+{% block keyword %}<form style="display: inline;" action="/"><input type="text" name="keyword" size="12" value=""/></form>{% endblock %}
+
+{% block body %}
+<div class="row-fluid">
+<div class="span6 column">
+<h4 class="center"><a href="/special">Special Cases</a></h4>
+<table class="table table-striped">
+{% for link in folderLinks[:15]: %}
+    {{ renderlink(0, link, username) }}
+{% endfor %}
+</table>
+</div>
+
+<div class="span6 column">
+<h4 class="center"><a href="/toplinks?n=100">Recent Top Links</a></h3>
+<table class="table table-striped">
+<!-- Check to see if topLinks is empty (new database) -->
+{% if topLinks %}
+    {% for idx, link in enumerate(topLinks[:8]): %}
+        {{ renderlink(idx+1, link, username) }}
+    {% endfor %}
+    {% for idx in sample(range(0, len(topLinks)), 1): %}
+        {{ renderlink(idx+1, topLinks[idx], username) }}
+    {% endfor %}
+{% endif %}
+</table>
+</div>
+
+</div>
+
+<h4>Lists used in last 30 days</h3>
+<div>
+  {% for LL in g_db.getAllLists() %}
+  <div class="cloudli">
+    <a style="opacity: {{ LL.opacity(now) }};"
+       href="/.{{ LL.name|escapekeyword }}"
+       title="{{ LL.clickinfo() }}">go/{{ LL.name }}{% if len(LL.links) > 1 %}({{ len(LL.links) }}){% endif %}</a>
+</div>
+{% endfor %}
+</div>
+
+{% endblock body %}

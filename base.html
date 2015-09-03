@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en"><head>
+<title>{% block title %}go/{% block titlekeyword %}{% endblock titlekeyword %}{% endblock title %}</title>
+<link rel="stylesheet" href="/bootstrap.css" media="screen"/>
+<link rel="shortcut icon" href="http://www.f5.com/favicon.ico" />
+
+<style type="text/css">
+    a { text-decoration: none; }
+    a:hover {
+        color: red;
+        text-decoration: none;
+        opacity: 1.0 !important;
+    }
+
+    .column {
+        border: 2px ridge gray;
+    }
+
+    .link {
+        overflow: hidden;
+    }
+    .cloudli {
+      float: left;
+      margin-left: .5em;
+      margin-top: .25em;
+    }
+
+    .center { text-align: center; }
+    .fineprint {
+        font-size: 75%;
+    }
+
+    table.table { margin-bottom: 10px; }
+
+    table.shallow td { padding: 4px; }
+
+    .link div.shallow { min-height: 0px }
+
+    .variables {
+        border: 1px solid black;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .variables td, .variables th {
+        border: 1px solid black;
+        text-align: center;
+        width: 30%;
+    }
+
+    .linkedit td:first-child {
+        font-weight: bold;
+    }
+
+    .column .inner {
+        margin: .5em;
+    }
+
+    .linkedit td input[name="example"], .linkedit td input[name="otherlists"] {
+        width: 12em;
+    }
+
+    .linkedit input[type="text"], .linkedit textarea {
+        width: 85%;
+    }
+
+    .linkedit input[type="checkbox"] {
+        margin-right: .5em;
+        vertical-align: top;
+    }
+
+    {% block css %}
+    {% endblock css %}
+</style>
+</head>
+<body>
+
+<div class="container-fluid">
+<div class="row-fluid">
+
+<div class="span4">
+<h3><a href="/" title="Redirector home">go</a>/{% block keyword %}{% endblock %}</h3>
+</div>
+
+<div class="span4 pull-right">
+<a class="pull-right" href="/help">go/help</a>
+<br/>
+<form action="/search">
+<input type="hidden" size="24" value="fulltext search currently disabled" readonly="true"/>
+{% if username %}
+<a class="pull-right" href="/{{ username }}">logged in as {{ username }}</a>
+{% else %}
+<a class="pull-right" href="/_login_?redirect={{ getCurrentEditableUrlQuoted() }}">login</a>
+{% endif %}
+</form>
+</div>
+
+</div>
+{% block body %}
+
+{% endblock body %}
+
+<hr style="clear:both;"/>
+</div>
+
+<script type="text/javascript">
+{% block javascript %}
+{% endblock javascript %}
+</script>
+</body>
+</html>

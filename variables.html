@@ -1,0 +1,14 @@
+
+{% extends "base.html" %}
+{% set username = getSSOUsername(False) %}
+
+{% block keyword %}variables{% endblock keyword %}
+{% block body %}
+{% include "vartable.html" %}
+{% if username %}
+<hr/>
+
+<h3>Add Variable</h3>
+This has been disabled for the time being. -Bill
+{% endif %}
+{% endblock body %}

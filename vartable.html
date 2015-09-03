@@ -1,0 +1,36 @@
+<form action="/_override_vars_">
+  <table class="table variables">
+    <tr>
+      <th><a href="/variables">Variables</a></th>
+      <th>Replace with</th>
+      <th><input type="submit" value="Save Local Overrides"/></th>
+    </tr>
+
+    {% if regexedit == "regex" %}
+    <tr>
+      <td><code>{0}</code></td>
+      <td>full regex match</td>
+    </tr>
+    <tr>
+      <td><code>{<i>n</i>}</code></td>
+      <td>regex match group &lt;n&gt;</td>
+    </tr>
+    {% endif %}
+
+    <tr>
+      <td><code>{*}</code></td>
+      <td>everything following <code>go/keyword/</code></td>
+    </tr>
+
+
+    {% for k, v in g_db.variables.items() %}
+    <tr>
+      <td><code>{{ "{" ~ k ~ "}" }}</code></td>
+      <td><code>{{ v }}</code></td>
+      <td>
+        <input type="text" alt="value" size="16" name="{{ k }}" value="{{ getDictFromCookie("variables").get(k, "") }}"/>
+      </td>
+    </tr>
+    {% endfor %}
+  </table> 
+</form>

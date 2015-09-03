@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Not Found{% endblock title %}
+{# block keyword %}{{ keyword }}{% endblock keyword #}
+
+{% block body %}
+
+<p class="alert">{{ message }}</p>
+
+<p>The URL
+
+<code>{{ getCurrentEditableUrl() }}</code>
+
+was not found.
+</p>
+
+{% endblock body %}

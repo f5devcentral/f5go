@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% set username = getSSOUsername() %}
+
+{% block keyword %}_check_{% endblock keyword %}
+
+{% block body %}
+
+{% for _, LL in g_db.lists.items() %}
+    {% if not LL.regex and len(LL.links) == 0 %}
+        <li>
+        {{ LL.name }} has 0 links
+        {% if vacwm %}
+            {{ g_db.deleteList(LL) }}
+        {% else %}
+            and will be deleted
+        {% endif %}
+        </li>
+    {% endif %}
+   
+    {% if is_int(LL.name) %}
+        <li>
+        {{ LL.name }} has integer name,
+        {% if vacwm %}
+            {{ g_db.renameList(LL, "n" + LL.name) }}
+            (renamed to n{{ LL.name }})
+        {% else %}
+            will be renamed to n{{ LL.name }}
+        {% endif %}
+        </li>
+    {% endif %}
+
+    {% for L in LL.links %}
+        {% if L._url not in g_db.linksByUrl %}
+            <li>
+                lost <a href="/_edit_/{{ L.linkid }}">link #{{ L.linkid }}</a>: {{ L._url }} not in linksByUrl
+            </li>
+            {% if vacwm %}
+            {{ g_db._addLink(L) }}
+                    (added to linksByUrl)
+            {% else %}
+                (will be added to linksByUrl)
+            {% endif %}
+        {% endif %}
+
+        {% if L.linkid not in g_db.linksById %}
+            <li>
+                lost link #{{ L.linkid }}: not in linksById
+                {% if vacwm %}
+            {{ g_db._addLink(L) }}
+                    (added to linksById)
+                {% else %}
+                    (will be added to linksById)
+                {% endif %}
+            </li>
+        {% endif %}
+
+        {% for A in L.lists %}
+            {% if L not in A.links %}
+            <li>
+                link #{{ L.linkid }} has {{ A }} in its lists but not the reverse.
+            </li>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+{% endfor %}
+
+{% for url, L in g_db.linksByUrl.items() %}
+    {% if url != L._url %}
+    <li>
+        <a href="/_edit_/{{ L.linkid }}">link #{{ L.linkid }}</a> url ({{ L._url }}) doesn't match byUrl {{ url }}
+        {% if vacwm %}
+            {{ g_db._removeLinkFromUrls(url) }} (removed from byUrl)
+        {% else %}
+            (will be removed from byUrl)
+        {% endif %}
+    </li>
+    {% endif %}
+
+{% endfor %}
+
+{% for L in g_db.linksById.values() %}
+    {% if L._url is none %}
+    <li>
+        <a href="/_edit_/{{ L.linkid }}">link #{{ L.linkid }}</a> has invalid url: {{ L.url }}
+        {% if vacwm %}
+            {{ g_db.deleteLink(L) }}
+        {% else %}
+            (will be deleted)
+        {% endif %}
+    </li>
+    {% endif %}
+{% endfor %}
+
+{% if not vacwm %}
+<a href="?vacwm=true">Cleanup</a>
+{% endif %}
+
+{% endblock body %}

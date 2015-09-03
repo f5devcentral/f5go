@@ -1,0 +1,23 @@
+User-agent: *
+Disallow: /variables
+
+User-agent: *
+Disallow: /check.html
+
+User-agent: *
+Disallow: /dumplist.html
+
+User-agent: *
+Disallow: /editlink.html
+
+User-agent: *
+Disallow: /vartable.html
+
+User-agent: *
+Disallow: /verify_special.html
+
+User-agent: *
+Disallow: /_*
+
+User-agent: *
+Allow: /.*

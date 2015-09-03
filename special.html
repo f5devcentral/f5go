@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% from "listinc.html" import editlink %}
+
+{% set username = getSSOUsername() %}
+
+{% block keyword %}:regex{% endblock %}
+
+{% block body %}
+
+<table class="table table-striped">
+  <tr>
+    <th/>
+    <th><a href="http://docs.python.org/library/re.html#regular-expression-syntax">Python Regex</a> of keyword</th>
+    <th>Help String</th>
+    <th>Destination URL <a href="http://docs.python.org/2/library/string.html#format-specification-mini-language">Format String</a></th>
+  </tr>
+
+{% for R in g_db.getSpecialLinks() %}
+  <tr>
+    <td>{{ editlink(R, username) }}</td>
+    <td>{% for K in R.lists %}
+    <a href="/.{{ K.name|escapekeyword }}">
+        <code>{{ K.usage() }}</code>
+    </a>
+            <br/>
+        {% endfor %}
+    </td>
+    <td>{{ R.title }}</td>
+    <td>{{ R._url }}</td>
+  </tr>
+{% endfor %}
+
+{#  <tr class="regexadd">
+  <form action="/_modify_regex_">
+    <td><input type="submit" value="Add"/></td>
+    <td><input type="text" name="regex" size="10"/></td>
+    <td><input type="text" name="title"/></td>
+    <td><input type="text" name="url" size="64" style="width: 100%"/></td>
+    </form>
+  </tr>
+#}
+
+</table> 
+
+{% endblock body %}
+
+{% block css %}
+{% endblock css %}
+

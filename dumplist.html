@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block keyword %}:dumplist{% endblock %}
+{% block css %}
+    .red { background-color: red }
+{% endblock css %}
+{% block body %}
+<table border="1px">
+<tr>
+    <th>L.linkid</th>
+    <th>L.url</th>
+    <th>L.title</th>
+    <th>L.edits</th>
+    <th>L.lists</th>
+</tr>
+{% for L in g_db.getList(listname).links: %}
+  <tr>
+    <td {% if L.linkid not in g_db.linksById %}class="red"{% endif %}><a href="/_edit_/{{ L.linkid }}">{{ L.linkid }}</a></td>
+    <td {% if L._url not in g_db.linksByUrl %}class="red"{% endif %}>{{ L._url }}</td>
+    <td>{{ L.title }}</td>
+    <td>{% for lastEditTime, lastEditor in L.edits %}
+    {{ lastEditTime|time_t }} by {{ lastEditor }}
+    <br/>
+    {% endfor %}
+    </td>
+    <td>{% for x in L.lists %}{{ x.name }} {% endfor %}</td>
+  </tr>
+{% endfor %}
+</table>
+
+{% endblock %}
+

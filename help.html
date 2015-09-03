@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% from "listinc.html" import editlink %}
+
+{% block title %}go/help{% endblock title %}
+
+{% block css %}
+.help tr.topic > td:first-child {
+    text-align: center;
+    width: 10%;
+}
+
+.help tr.topic > td {
+    padding: 1em;
+
+}
+{% endblock css %}
+
+{% macro badge(n) -%}
+<span class="badge badge-important">{{ n }}</span>
+{%- endmacro %}
+
+{% set L = randomlink() %}
+{% set idx = 0 %}
+{% set usage = L.usage() %}
+
+{% block body %}
+
+<div class="row-fluid">
+<div class="span8 offset2">
+<table border="1px solid black" class="help">
+<tr class="topic">
+<td/>
+<td>
+<h4>The <a href="/">go/ redirector</a> is a mnemonic URL shortener and a link database.</h4>
+</td>
+</tr>
+<tr class="topic">
+<td><h4>Motivation</h4></td>
+<td>
+<p>Instead of having to publicize a long and winding URL like
+<code>{{ L.url()|truncate(140, "...") }}</code>,
+
+
+you can simply create a go keyword like
+<a href="http://go/{{ usage }}"><code>go/{{ usage }}</code></a>
+
+that will automatically redirect straight to that webpage.</p>
+</td>
+</tr>
+<tr class="topic">
+
+<td>
+<h4>Plain Keywords</h4>
+</td>
+<td>
+
+<p>
+
+<code>go/<i>keyword</i></code> might redirect to a list of its links, a
+specific link, or a random link, depending on how the keyword is configured.
+By default, a plain keyword with only one link will redirect to that link.
+</p>
+
+<p><code>go/.<i>keyword</i></code> ("dot-keyword") will always go to the
+index page for that keyword, where links can be added and removed, and the
+redirect behavior of the keyword itself can be changed.</p>
+
+<p>Plain keywords can only have letters, numbers, dots, and dashes.  No other
+characters are allowed in a plain keyword.</p>
+
+</td>
+</tr>
+
+<tr class="topic">
+<td>
+<h4>Searchable Keywords</h4>
+</td>
+<td>
+
+<p>Some keywords are effectively search queries; everything following
+the keyword is injected into the URL.</p>
+
+<p>For example, <a href="http://go/ogle/ffiv"><code>go/ogle/ffiv</code></a> does a Google search for "ffiv".
+
+The link for this keyword has the URL <code>https://www.google.com/search?q={*}</code>.  The <code>{*}</code> is replaced with the search query, in this case "ffiv".
+</p>
+
+<p>Searchable keywords end in a forward slash.
+
+If you try to add a plain keyword to a link with <code>{*}</code> in the URL,
+the keyword will be converted to a searchable keyword by appending a slash.
+
+<p>The index page for searchable keywords is the same as for plain keywords, as
+long as the keyword ends with its slash.  For example, <a
+href="http://go/.ogle/"><code>go/.ogle/</code></a> goes to the index page for
+the <code>ogle/</code> searchable keyword.</p>
+
+<p>Replace whitespace in search queries with a plus symbol (+). For example, <code>go/ogle/F5+networks+rules</code>.</p>
+
+</td>
+</tr>
+
+<tr class="topic">
+<td>
+<h4>Smart Keywords</h4>
+</td>
+
+<td>
+<p>XXX: TODO</p>
+
+<p>A list of all searchable keywords and regexes is at <a href="/special"><code>go/special</code></a>.</p>
+
+</td>
+</tr>
+<tr class="topic">
+<td>
+<h4>Variables</h4>
+</td>
+<td>
+
+<p>All link URLs can have <code>{VARIABLES}</code> in them, which expand to a
+system-wide default which can be overridden per browser (via cookie). </p>
+
+<p><a href="/variables"><code>go/variables</code></a> allows you to
+add new variables and change the system values of existing ones.  The "Save
+Local Overrides" button will store a cookie in your browser with your local
+variable overrides.</p> </td> </tr>
+
+<tr class="topic">
+<td>
+<h4>Link Summary</h4>
+</td>
+<td>
+<table class="table table-striped">
+<tr>
+<td>
+<b>
+ <a title="{{ L.clickinfo() }}" class="pull-left fineprint" style="width: 1em;">
+#{% if idx > 0 %}{{ idx }}{% else %}&nbsp;{% endif %}</a>
+ </b>
+ <div class="container-fluid link" id="{{ L.linkid }}">
+  <div class="shallow">
+
+    <a title="{{ L._url }}" href="{{ L.url() }}">
+      <div class="shallow example span4">{{ badge(1) }}
+       {% if usage != "" %}
+          <b>go/{{ usage }}</b>
+       {% else %}
+         &nbsp;
+       {% endif %}
+      </div>
+
+      <div class="shallow span8">{{ badge(2) }}{{ L.title or L._url|truncate(80, True) }}</div>
+    </a>
+  </div>
+    <div class="fineprint shallow meta text">
+    {{ badge(3) }}
+      {% for K in L.lists if K.name and K.usage() != usage: %}
+      {% set flDirect = K.goesDirectlyTo(L) %}
+      <a href="/.{{ K.name|escapekeyword }}" title="{{ K.clickinfo() }}">{% if flDirect %}<b>{{ K.usage() }}</b>{% else %}<i>{{ K.usage() }}</i>{% endif %}</a>
+      {% endfor %}
+    </div>
+
+
+</div>
+</td>
+  <td>
+      <div class="pull-right">
+      {{ badge(4) }}
+      <a
+    {% if L.edits %}
+      {% set lastEditTime, lastEditName = L.lastEdit() %}
+      title="edited {{ lastEditTime|time_t }} by {{ lastEditName }}"
+    {% else %}
+      title="edit"
+    {% endif %}
+      href="/_edit_/{{ L.linkid }}">&#x2692;</a>
+    </div>
+
+</td>
+</tr>
+</table>
+
+<p>The link summary appears on the index page, the keyword index page, and the
+toplinks page.</p>
+
+<p> The main keyword {{ badge(1) }} will redirect immediately to the link.</p>
+
+<p>The Title {{ badge(2) }} gives an indication of where the link goes; hover
+over the Title to see the full URL.</p>
+
+<p>Additional keywords {{ badge(3) }} associated with this link (if any) are shown below
+the main keyword.  <b>bold keywords</b> redirect immediately to the link; <i>italic keywords</i> do not.</p>
+
+
+<p>Click the &#x2692; (hammer and pick) in the upper right {{ badge(4) }} to edit the
+link.</p>
+
+
+<p>Hover over the octothorpe (<b>#</b>) to see click info.</p>
+</td>
+</tr>
+
+<tr class="topic">
+<td>
+<h4>Editing Links</h4>
+</td>
+<td>
+<div class="column">
+<a class="pull-right" style="margin-right: .25em;">{{ badge(6) }} DELETE</a>
+
+<div class="inner">
+  <table class="table linkedit">
+    <tr>
+      <td>Title {{ badge(1) }}</td>
+      <td>
+        <input readonly="true" type="text" name="title" maxlength="140" size="50" value="{{ L.title }}"/>
+      </td>
+      <td class="help"></td>
+    </tr>
+
+    <tr>
+      <td>URL {{ badge(2) }}</td>
+      <td>
+        <textarea readonly="true" name="url" rows="4" cols="50">{{ L._url }}</textarea>
+      </td>
+    </tr>
+
+   <tr>
+     <td>Lists</td>
+     <td>
+     {% set listnames = L.listnames() or list(lists) %}
+      {% for idx, t in enumerate(listnames) %}
+      {% set K = g_db.getList(t, create=False) %}
+      {% set flDirect = K and K.goesDirectlyTo(L) %}
+        {% if idx == 0 %}{{ badge(3) }}{% endif %}
+        <input disabled="true" type="checkbox" name="lists" checked="checked" value="{{ t }}">
+        <a href="/.{{ t|escapekeyword }}">
+       {% if flDirect %}<b>{% else %}<i>{% endif %}
+       {{ t }}
+       {% if flDirect %}</b>{% else %}</i>{% endif %}
+       </a></input>
+       <br/>
+      {% endfor %}
+      add to: {{ badge(4) }} <input readonly="true" type="text" name="otherlists" value="{{ otherlists }}"/> <i>(space-separated)</i>
+     </td>
+   </tr>
+
+   <tr>
+     <td/>
+     <td>
+         {{ badge(5) }}<input type="submit" disabled="true" value="Submit Link"/>
+     </td>
+   </tr>
+  </table>
+</div>
+</div> {# end inner #}
+
+<br/>
+
+<p>Links have an optional Title {{ badge(1) }} which
+is displayed instead of the URL {{ badge(2) }} in the link summary.</p>
+
+<p>
+The link can be removed from a keyword by unchecking the checkbox {{ badge(3) }} next to the keyword, and it can be added to keywords by typing them in the "add to" input box {{ badge(4) }}).  These will be updated when the Submit Link button {{ badge(5) }} is pressed.</p>
+
+<p> Clicking on the DELETE {{ badge(6) }} in the upper right will <strong>immediately</strong> remove the
+link from all keywords and obliterate it from the system.  Delete links with
+caution!</p>
+
+</td>
+</tr>
+</table>
+</div>
+</div>
+
+{% endblock body %}

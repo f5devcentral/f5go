@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block keyword %}{{ regex }}{% endblock %}
+{% block body %}
+
+{% set exampleurl = RegexList(0, regex, url, example, title).url(example)  %}
+
+{% if exampleurl %}
+<h3>Test Your Regex</h3>
+<p>Try out your example in another window: <a target="_blank" href="{{ exampleurl }}">go/{{ example }}</a></p>
+<hr/>
+<p>Did it go to the right place?
+
+<br/>
+
+<form action="/_modify_">
+    <input type="hidden" name="verified" value="true"/>
+    <input type="hidden" size="14" name="regex" value="{{ regex }}"/>
+    <input type="hidden" alt="example" size="10" name="example" value="{{ example }}"/>
+    <input type="hidden" alt="description" size="10" name="title" value="{{ title }}"/>
+    <input type="hidden" alt="url" size="64" name="url" value="{{ url }}"/>
+    <input type="submit" value="Yup, Add It"/> </form>
+</form>
+{% else %}
+
+<h3>The regex '{{ regex }}' didn't even match the example '{{ example }}'!</h3>
+{% endif %}
+
+<form action="/.{{ linkid }}">
+    <input type="hidden" size="14" name="regex" value="{{ regex }}"/>
+    <input type="hidden" alt="example" size="10" name="example" value="{{ example }}"/>
+    <input type="hidden" alt="description" size="10" name="title" value="{{ title }}"/>
+    <input type="hidden" alt="url" size="64" name="url" value="{{ url }}"/>
+    <input type="hidden" alt="url" size="64" name="lists" value="{{ lists }}"/>
+    <input type="submit" value="Let Me Try Again"/> </form>
+</form>
+
+
+{% endblock body %}
