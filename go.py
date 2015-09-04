@@ -44,6 +44,10 @@ class MyGlobals(object):
     def __init__(self):
         self.db_hnd = None
 
+    def __repr__(self):
+        return '%s(hnd=%s)' % (self.__class__.__name__, self.db_hnd)
+
+
     def set_handle(self, hnd):
         self.db_hnd = hnd
 
@@ -204,6 +208,11 @@ class Clickable:
         self.archivedClicks = 0
         self.clickData = {}
 
+    def __repr__(self):
+        return '%s(archivedClicks=%s, clickData=%s)' % (self.__class__.__name__,
+                                                        self.archivedClicks,
+                                                        self.clickData)
+
     def clickinfo(self):
         return "%s recent clicks (%s total); last visited %s" % (self.recentClicks, self.totalClicks, prettyday(self.lastClickDay))
 
@@ -266,6 +275,12 @@ class Link(Clickable):
 
         self.edits = []    # (edittime, editorname); [-1] is most recent
         self.lists = []    # List() instances
+
+    def __repr__(self):
+        return '%s(linkid=%s, url=%s, title=%s, edits=%s, lists=%s)' % (self.__class__.__name__,
+                                                                        self.linkid, self._url,
+                                                                        self.title, self.edits,
+                                                                        self.lists)
 
     def isGenerative(self):
         return any([K.isGenerative() for K in self.lists])
@@ -379,6 +394,10 @@ class ListOfLinks(Link):
         self._url = redirect  # list | freshest | top | random
         self.links = []
 
+    def __repr__(self):
+        return 'self.__class__.__name__(linkid=%s, name=%s, redirect=%s, links=%s)' % (self.linkid, self.regex, self._url, ','.join(self.links))
+
+
     def isGenerative(self):
         return self.name[-1] == "/"
 
@@ -468,6 +487,10 @@ class RegexList(ListOfLinks):
 
         self.regex = regex
 
+    def __repr__(self):
+        return '%s(linkid=%s, regex=%s)' % (self.__class__.__name__,
+                                            self.linkid, self.regex)
+
     def usage(self):
         return self.regex
 
@@ -518,11 +541,23 @@ class LinkDatabase:
         self.linksByUrl = {}     # link._url -> Link
         self._nextlinkid = 1
 
+    def __repr__(self):
+        return '%s(regexes=%s, lists=%s, vars=%s, byId=%s, byUrl=%s)' % (self.__class__.__name__,
+                                                                         self.regexes, self.lists,
+                                                                         self.variables,
+                                                                         self.linksById,
+                                                                         self.linksByUrl)
+
+
     @staticmethod
     def load(db=cfg_fnDatabase):
+        """Attempt to load the database defined at cfg_fnDatabase. Create a
+        new one if the database doesn't already exist.
+        """
         try:
+            print "Loading DB from %s" % db
             return pickle.load(file(db))
-        except:
+        except IOError:
             print sys.exc_info()[1]
             print "Creating new database..."
             return LinkDatabase()
@@ -1043,6 +1078,7 @@ def main():
     cherrypy.quickstart(Root(), "/", config=conf)
 
 g_db = LinkDatabase.load()
+
 
 if __name__ == "__main__":
 
