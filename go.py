@@ -395,7 +395,9 @@ class ListOfLinks(Link):
         self.links = []
 
     def __repr__(self):
-        return 'self.__class__.__name__(linkid=%s, name=%s, redirect=%s, links=%s)' % (self.linkid, self.regex, self._url, ','.join(self.links))
+        return '%s(linkid=%s, name=%s, redirect=%s, links=%s)' % (self.__class__.__name__,
+                                                                  self.linkid, self.name,
+                                                                  self._url, self.links)
 
 
     def isGenerative(self):
