@@ -16,7 +16,7 @@
   {% endif %}
 
 <div class="inner">
- <form action="/_modify_">
+ <form action="/_modify_" method="POST">
   {% if returnto %}
     <input type="hidden" name="returnto" value="{{ returnto|escapekeyword }}"/>
   {% endif %}
