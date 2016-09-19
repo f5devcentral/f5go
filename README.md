@@ -1,6 +1,8 @@
 
 # The F5 Go Redirector
 
+[![Build Status](https://travis-ci.org/F5Networks/f5go.svg?branch=master)](https://travis-ci.org/F5Networks/f5go)
+
 *A simple service for redirecting mnemonic terms to destination urls.*
 
 Features include:
