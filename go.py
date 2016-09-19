@@ -940,6 +940,7 @@ class Root:
         return self.redirect("/." + returnto)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     def _modify_(self, **kwargs):
         username = getSSOUsername()
 
