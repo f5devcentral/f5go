@@ -195,7 +195,7 @@ def getSSOUsername(redirect=True):
     :param redirect:
     :return: the SSO username
     """
-    if cfg_urlSSO is None or 'None':
+    if cfg_urlSSO is None or cfg_urlSSO == 'None':
         return 'testuser'
 
     if cherrypy.request.base != cfg_urlEditBase:
