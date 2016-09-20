@@ -525,7 +525,7 @@ class RegexList(ListOfLinks):
         if m:
             deflink = self.getDefaultLink()
             for L in deflink and [deflink] or self.links:
-                url = L.url(keyword=kw, args=(m.group(0)) + m.groups())
+                url = L.url(keyword=kw, args=(m.group(0), ) + m.groups())
                 ret.append((L, Link(0, url, L.title)))
 
         return ret
@@ -539,7 +539,7 @@ class RegexList(ListOfLinks):
         if not m:
             return None
 
-        return ListOfLinks.url(self, keyword=kw, args=(m.group(0)) + m.groups())
+        return ListOfLinks.url(self, keyword=kw, args=(m.group(0), ) + m.groups())
 
     def _export(self):
         return ("regex %s " % self.regex) + ListOfLinks._export(self)
