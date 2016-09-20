@@ -36,8 +36,17 @@ config.read('go.cfg')
 cfg_fnDatabase = config.get('goconfig', 'cfg_fnDatabase')
 cfg_urlFavicon = config.get('goconfig', 'cfg_urlFavicon')
 cfg_hostname = config.get('goconfig', 'cfg_hostname')
+cfg_port = config.getint('goconfig', 'cfg_port')
 cfg_urlSSO = config.get('goconfig', 'cfg_urlSSO')
 cfg_urlEditBase = "https://" + cfg_hostname
+cfg_sslEnabled = False # default to False
+try:
+    cfg_sslEnabled = config.getboolean('goconfig', 'cfg_sslEnabled')
+except ValueError:
+    # just preventing from crashing if the cfg option doesn't exist since technically it's optional
+    pass
+cfg_sslCertificate = config.get('goconfig', 'cfg_sslCertificate')
+cfg_sslPrivateKey = config.get('goconfig', 'cfg_sslPrivateKey')
 
 
 class MyGlobals(object):
@@ -180,8 +189,15 @@ def getCurrentEditableUrlQuoted():
 
 
 def getSSOUsername(redirect=True):
-    """ """
-    return 'testuser'
+    """
+    If no SSO URL is specified then the 'testuser' is returned, otherwise returns an SSO username
+    (or redirects to SSO to get it)
+    :param redirect:
+    :return: the SSO username
+    """
+    if cfg_urlSSO is None or 'None':
+        return 'testuser'
+
     if cherrypy.request.base != cfg_urlEditBase:
         if not redirect:
             return None
@@ -933,7 +949,7 @@ class Root:
 
     @cherrypy.expose
     def _delete_(self, linkid, returnto=""):
-        # username = getSSOUsername()
+        username = getSSOUsername()
 
         g_db.deleteLink(g_db.getLink(linkid))
 
@@ -1059,18 +1075,17 @@ env = jinja2.Environment(loader=jinja2.FileSystemLoader("."))
 
 def main():
     cherrypy.config.update({'server.socket_host': '::',
-                            'server.socket_port': 8080,
+                            'server.socket_port': cfg_port,
                             'request.query_string_encoding': "latin1",
                             })
 
     cherrypy.https = s = cherrypy._cpserver.Server()
-    # s.socket_host = '::'
-    # s.socket_port = 443
-#    s.ssl_module = 'pyopenssl'
-    # s.ssl_certificate = 'go.crt'
-    # s.ssl_private_key = 'go.key'
-#    s.ssl_certificate_chain = 'gd_bundle.crt'
-    # s.subscribe()
+    if cfg_sslEnabled:
+        s.socket_host = '::'
+        s.socket_port = 443
+        s.ssl_certificate = cfg_sslCertificate
+        s.ssl_private_key = cfg_sslPrivateKey
+        s.subscribe()
 
     # checkpoint the database every 60 seconds
     cherrypy.process.plugins.BackgroundTask(60, lambda: g_db.save()).start()
