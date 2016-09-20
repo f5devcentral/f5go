@@ -28,6 +28,7 @@ import urlparse
 import ConfigParser
 import cherrypy
 import jinja2
+import shutil
 
 
 config = ConfigParser.ConfigParser()
@@ -581,7 +582,10 @@ class LinkDatabase:
             return LinkDatabase()
 
     def save(self):
-        pickle.dump(self, file(cfg_fnDatabase, "w"))
+        tmpfile = cfg_fnDatabase + '.tmp'
+        pickle.dump(self, file(tmpfile, "w"))
+        shutil.copyfile(tmpfile, cfg_fnDatabase)
+        os.remove(tmpfile)
 
     def nextlinkid(self):
         r = self._nextlinkid
