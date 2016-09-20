@@ -43,7 +43,7 @@ cfg_urlEditBase = "https://" + cfg_hostname
 cfg_sslEnabled = False # default to False
 try:
     cfg_sslEnabled = config.getboolean('goconfig', 'cfg_sslEnabled')
-except ValueError:
+except:
     # just preventing from crashing if the cfg option doesn't exist since technically it's optional
     pass
 cfg_sslCertificate = config.get('goconfig', 'cfg_sslCertificate')
