@@ -7,7 +7,7 @@ common phone numbers, and just about everyone needs a way around bookmarks.
 """
 
 __author__ = "Saul Pwanson <saul@pwanson.com>"
-__credits__ = "Bill Booth, Bryce Bockman, treebird"
+__credits__ = "Bill Booth, Bryce Bockman, treebird, Sean Smith"
 
 import base64
 import cgi
