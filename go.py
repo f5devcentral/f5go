@@ -582,6 +582,7 @@ class LinkDatabase:
             return LinkDatabase()
 
     def save(self):
+        #TODO: Make this get saved to a database, this is a temporary solution to prevent corruption
         tmpfile = cfg_fnDatabase + '.tmp'
         pickle.dump(self, file(tmpfile, "w"))
         shutil.copyfile(tmpfile, cfg_fnDatabase)
