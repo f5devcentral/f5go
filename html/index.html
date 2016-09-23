@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "html/base.html" %}
 
 {% set username = getSSOUsername(False) %}
 {% set topLinks = byClicks(g_db.getNonFolders()) %}
 {% set folderLinks = byClicks(g_db.getSpecialLinks()) %}
 
-{% from "listinc.html" import renderlink %}
+{% from "html/listinc.html" import renderlink %}
 
 {% block keyword %}<form style="display: inline;" action="/"><input type="text" name="keyword" size="12" value=""/></form>{% endblock %}
 

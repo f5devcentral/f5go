@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% from "listinc.html" import clickstats %}
+{% extends "html/base.html" %}
+{% from "html/listinc.html" import clickstats %}
 
 <!-- {% set username = getSSOUsername() %} -->
 
@@ -79,7 +79,7 @@
 
 <div class="column span6">
 <div class="inner">
-      {% include "vartable.html" %}
+      {% include "html/vartable.html" %}
 <p>also see <a href="http://docs.python.org/2/library/string.html#format-specification-mini-language">Python Format Syntax</a> for variable formatting
 and <a href="http://docs.python.org/library/re.html#regular-expression-syntax">Python Regex Syntax</a> for regexes
 </div>
