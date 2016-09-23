@@ -1039,7 +1039,7 @@ class Root:
     @cherrypy.expose
     def _internal_(self, *args, **kwargs):
         # check, toplinks, special, dumplist
-        return env.get_template("" + args[0] + ".html").render(**kwargs)
+        return env.get_template(args[0] + ".html").render(**kwargs)
 
     @cherrypy.expose
     def toplinks(self, n="100"):
