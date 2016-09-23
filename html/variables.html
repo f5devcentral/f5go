@@ -1,10 +1,10 @@
 
-{% extends "html/base.html" %}
+{% extends "base.html" %}
 {% set username = getSSOUsername(False) %}
 
 {% block keyword %}variables{% endblock keyword %}
 {% block body %}
-{% include "html/vartable.html" %}
+{% include "vartable.html" %}
 {% if username %}
 <hr/>
 

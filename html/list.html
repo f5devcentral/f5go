@@ -1,9 +1,9 @@
-{% extends "html/base.html" %}
+{% extends "base.html" %}
 
 {% set popularLinks = L.getPopularLinks() %}
 <!-- {% set username = getSSOUsername(False) %} -->
 
-{% from "html/listinc.html" import renderlink, clickstats with context %}
+{% from "listinc.html" import renderlink, clickstats with context %}
 
 {% block titlekeyword %}{{ keyword }}{% endblock %}
 {% block keyword %}{{ keyword }}{% endblock %}

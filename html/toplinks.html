@@ -1,6 +1,6 @@
-{% extends "html/base.html" %}
+{% extends "base.html" %}
 
-{% from "html/listinc.html" import renderlink with context %}
+{% from "listinc.html" import renderlink with context %}
 {% set username = getSSOUsername(False) %}
 
 {% block keyword %}toplinks{% endblock keyword %}

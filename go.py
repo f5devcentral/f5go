@@ -776,7 +776,7 @@ class Root:
         raise cherrypy.HTTPRedirect(cherrypy.request.headers.get("Referer", "/"))
 
     def notfound(self, msg):
-        return env.get_template("html/notfound.html").render(message=msg)
+        return env.get_template("notfound.html").render(message=msg)
 
     def redirectIfNotFullHostname(self, scheme=None):
         if scheme is None:
@@ -826,7 +826,7 @@ class Root:
         if "keyword" in kwargs:
             return self.redirect("/" + kwargs["keyword"])
 
-        return env.get_template('html/index.html').render(now=today())
+        return env.get_template('index.html').render(now=today())
 
     @cherrypy.expose
     def default(self, *rest, **kwargs):
@@ -867,7 +867,7 @@ class Root:
                     return self.notfound("No match found for '%s'" % keyword)
 
                 # serve up empty fake list
-                return env.get_template('html/list.html').render(L=ListOfLinks(0), keyword=kw)
+                return env.get_template('list.html').render(L=ListOfLinks(0), keyword=kw)
             elif len(matches) == 1:
                 R, L, genL = matches[0]  # actual regex, generated link
                 R.clicked()
@@ -876,7 +876,7 @@ class Root:
             else:  # len(matches) > 1
                 LL = ListOfLinks(-1)  # -1 means non-editable
                 LL.links = [genL for R, L, genL in matches]
-                return env.get_template('html/list.html').render(L=LL, keyword=keyword)
+                return env.get_template('list.html').render(L=LL, keyword=keyword)
 
         listtarget = ll.getDefaultLink()
 
@@ -885,7 +885,7 @@ class Root:
             listtarget.clicked()
             return self.redirect(deampify(listtarget.url()))
 
-        tmplList = env.get_template('html/list.html')
+        tmplList = env.get_template('list.html')
         return tmplList.render(L=ll, keyword=keyword)
 
     @cherrypy.expose
@@ -895,7 +895,7 @@ class Root:
         LL.links = g_db.getSpecialLinks()
 
         env.globals['g_db'] = g_db
-        return env.get_template('html/list.html').render(L=LL, keyword="special")
+        return env.get_template('list.html').render(L=LL, keyword="special")
 
     @cherrypy.expose
     def _login_(self, redirect=""):
@@ -919,23 +919,23 @@ class Root:
         # _add_/tag1/tag2/tag3
         link = Link()
         link.lists = [g_db.getList(listname, create=False) or ListOfLinks(0, listname) for listname in args]
-        return env.get_template("html/editlink.html").render(L=link, returnto=(args and args[0] or None), **kwargs)
+        return env.get_template("editlink.html").render(L=link, returnto=(args and args[0] or None), **kwargs)
 
     @cherrypy.expose
     def _edit_(self, linkid, **kwargs):
         link = g_db.getLink(linkid)
         if link:
-            return env.get_template("html/editlink.html").render(L=link, **kwargs)
+            return env.get_template("editlink.html").render(L=link, **kwargs)
 
         # edit new link
-        return env.get_template("html/editlink.html").render(L=Link(), **kwargs)
+        return env.get_template("editlink.html").render(L=Link(), **kwargs)
 
     @cherrypy.expose
     def _editlist_(self, keyword, **kwargs):
         K = g_db.getList(keyword, create=False)
         if not K:
             K = ListOfLinks()
-        return env.get_template("html/list.html").render(L=K, keyword=keyword)
+        return env.get_template("list.html").render(L=K, keyword=keyword)
 
     @cherrypy.expose
     def _setbehavior_(self, keyword, **kwargs):
@@ -1039,19 +1039,19 @@ class Root:
     @cherrypy.expose
     def _internal_(self, *args, **kwargs):
         # check, toplinks, special, dumplist
-        return env.get_template("html/" + args[0] + ".html").render(**kwargs)
+        return env.get_template("" + args[0] + ".html").render(**kwargs)
 
     @cherrypy.expose
     def toplinks(self, n="100"):
-        return env.get_template("html/toplinks.html").render(n=int(n))
+        return env.get_template("toplinks.html").render(n=int(n))
 
     @cherrypy.expose
     def variables(self):
-        return env.get_template("html/variables.html").render()
+        return env.get_template("variables.html").render()
 
     @cherrypy.expose
     def help(self):
-        return env.get_template("html/help.html").render()
+        return env.get_template("help.html").render()
 
     @cherrypy.expose
     def _override_vars_(self, **kwargs):
@@ -1069,7 +1069,7 @@ class Root:
         return self.redirect("/variables")
 
 
-env = jinja2.Environment(loader=jinja2.FileSystemLoader("."))
+env = jinja2.Environment(loader=jinja2.FileSystemLoader("./html"))
 
 
 def main():
@@ -1110,7 +1110,7 @@ if __name__ == "__main__":
         g_db._dump(sys.stdout)
 
     else:
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader("."))
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader("./html"))
         env.filters['time_t'] = prettytime
         env.filters['int'] = int
         env.filters['escapekeyword'] = escapekeyword
