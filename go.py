@@ -814,12 +814,6 @@ class Root:
         return self.redirect(cfg_urlFavicon, status=301)
 
     @cherrypy.expose
-    def bootstrap_css(self):
-        cherrypy.response.headers["Cache-control"] = "max-age=172800"
-        cherrypy.response.headers["Content-Type"] = "text/css"
-        return file("bootstrap.min.css").read()
-
-    @cherrypy.expose
     def lucky(self):
         luckylink = random.choice(g_db.getNonFolders())
         luckylink.clicked()
@@ -1064,7 +1058,7 @@ class Root:
         cherrypy.response.cookie["variables"] = urllib.urlencode(kwargs)
         cherrypy.response.cookie["variables"]["max-age"] = 10 * 365 * 24 * 3600
 
-        return self.redirect("/variables")
+        return self.redirect("variables")
 
     @cherrypy.expose
     def _set_variable_(self, varname="", value=""):
@@ -1075,7 +1069,7 @@ class Root:
         return self.redirect("/variables")
 
 
-env = jinja2.Environment(loader=jinja2.FileSystemLoader("."))
+env = jinja2.Environment(loader=jinja2.FileSystemLoader("./html"))
 
 
 def main():
@@ -1096,7 +1090,8 @@ def main():
     cherrypy.process.plugins.BackgroundTask(60, lambda: g_db.save()).start()
 
     file_path = os.getcwd().replace("\\", "/")
-    conf = {'/images': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path+"/images"}}
+    conf = {'/images': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/images"},
+            '/css': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/css"}}
     print "Cherrypy conf: %s" % conf
     cherrypy.quickstart(Root(), "/", config=conf)
 
@@ -1115,7 +1110,7 @@ if __name__ == "__main__":
         g_db._dump(sys.stdout)
 
     else:
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader("."))
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader("./html"))
         env.filters['time_t'] = prettytime
         env.filters['int'] = int
         env.filters['escapekeyword'] = escapekeyword
