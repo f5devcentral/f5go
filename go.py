@@ -48,7 +48,9 @@ except:
     pass
 cfg_sslCertificate = config.get('goconfig', 'cfg_sslCertificate')
 cfg_sslPrivateKey = config.get('goconfig', 'cfg_sslPrivateKey')
-
+cfg_contactEmail = config.get('goconfig', 'cfg_contactEmail')
+cfg_contactName = config.get('goconfig', 'cfg_contactName')
+cfg_customDocs = config.get('goconfig', 'cfg_customDocs')
 
 class MyGlobals(object):
     def __init__(self):
