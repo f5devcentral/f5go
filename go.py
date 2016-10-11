@@ -253,6 +253,10 @@ class Clickable:
             raise AttributeError(attrname)
 
     def clicked(self, n=1):
+        """
+        :param n: The number of clicks to record
+        :return:
+        """
         todayord = today()
         if todayord not in self.clickData:
             # partition clickdata around 30 days ago

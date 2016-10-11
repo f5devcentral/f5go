@@ -102,12 +102,12 @@
 
 <hr style="clear:both;"/>
     {# If cfg_contactEmail exists and is not "None" then display it #}
-    {% if cfg_contactEmail is defined and cfg_contactEmail|string() != "None" %}
+    {% if cfg_contactEmail is defined and cfg_contactEmail != None and cfg_contactEmail != "None" %}
 <p>Problems, questions, suggestions? <a href="mailto:{{ cfg_contactEmail }}">email {{ cfg_contactName }}</a>.</p>
     {% endif %}
 
     {# If cfg_customDocs exists and is not "None" then display it #}
-    {% if cfg_customDocs is defined and cfg_customDocs != "None" %}
+    {% if cfg_customDocs is defined and cfg_customDocs != None and cfg_customDocs != "None" %}
 <div>
 <a href="{{cfg_customDocs}}">GO redirector information page</a>
 </div>

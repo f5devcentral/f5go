@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
 import unittest
 import time
 
@@ -175,6 +176,51 @@ class GeneralTestCases(unittest.TestCase):
         # TODO: Will have to be changed if/when SSO is made generic
         self.assertEqual("testuser", go.getSSOUsername())
 
+
+class LinkTestCases(unittest.TestCase):
+    def test_create_link(self):
+        link = go.Link(url='www.example.com', title='example site')
+        self.assertEqual(0, link.linkid)
+        self.assertEqual('example site', link.title)
+
+    def test_edit_link(self):
+        """
+        Validate the last edit user starts off blank and then adds a users when edited
+        :return:
+        """
+        link = go.Link(url='example.com', title='example site')
+        (last_edit_time, last_edit_name) = link.lastEdit()
+        self.assertEqual(0, last_edit_time)
+        self.assertEqual('', last_edit_name)
+
+        link.editedBy('testuser')
+        (_, last_edit_name) = link.lastEdit()
+        self.assertEqual('testuser', last_edit_name)
+
+    def test_opacity_never_clicked(self):
+        """
+        By default the opacity is 0.2
+        :return:
+        """
+        link = go.Link(url='example.com', title='example site')
+        today = datetime.date.today()
+        date = datetime.date.toordinal(today)
+        self.assertEqual('0.20', link.opacity(date))
+
+    def test_opacity_clicked_today(self):
+        """
+        By default the opacity is 0.2, by "clicking" today it's set to 1.0
+        :return:
+        """
+        link = go.Link(url='example.com', title='example site')
+        today = datetime.date.today()
+        date = datetime.date.toordinal(today)
+        link.clicked()
+        self.assertEqual('1.00', link.opacity(date))
+
+    def test_usage_not_exists(self):
+        link = go.Link(url='example.com', title='example site')
+        self.assertEqual('', link.usage())
 
 if __name__ == '__main__':
     unittest.main()
