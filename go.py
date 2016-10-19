@@ -1097,7 +1097,8 @@ def main():
 
     file_path = os.getcwd().replace("\\", "/")
     conf = {'/images': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/images"},
-            '/css': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/css"}}
+            '/css': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/css"},
+            '/js': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/js"}}
     print "Cherrypy conf: %s" % conf
     cherrypy.quickstart(Root(), "/", config=conf)
 
