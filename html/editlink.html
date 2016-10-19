@@ -12,7 +12,7 @@
 <div class="column span6">
 
   {% if L.linkid != 0 %}
-  <a class="pull-right" style="margin-right: .25em;" href="/_delete_/{{ L.linkid }}?returnto={{ returnto }}">DELETE</a>
+  <a class="pull-right" id="delete" style="margin-right: .25em;" href="/_delete_/{{ L.linkid }}?returnto={{ returnto }}">DELETE</a>
   {% endif %}
 
 <div class="inner">
@@ -94,4 +94,5 @@ and <a href="http://docs.python.org/library/re.html#regular-expression-syntax">P
 <br/>&mdash;&nbsp;{{ editTime|time_t }} by {{ editor }}
 {% endfor %}
 
+<script type="application/javascript" src="/js/go.js"></script>
 {% endblock body %}
