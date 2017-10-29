@@ -5,11 +5,11 @@
 
 {% block body %}
 
-<p class="alert">{{ message }}</p>
+<p class="alert">{{ message | escape }}</p>
 
 <p>The URL
 
-<code>{{ getCurrentEditableUrl() }}</code>
+<code>{{ getCurrentEditableUrl() | escape }}</code>
 
 was not found.
 </p>
