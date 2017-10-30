@@ -845,6 +845,9 @@ class Root:
         action = kwargs.get("action", "list")
 
         if keyword[0] == ".":  # force list page instead of redirect
+            if keyword == ".me":
+                username = getSSOUsername()
+                self.redirect("." + username)
             forceListDisplay = True
             keyword = keyword[1:]
 
