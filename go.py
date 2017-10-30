@@ -911,6 +911,11 @@ class Root:
         return self.undirect()
 
     @cherrypy.expose
+    def me(self):
+        username = getSSOUsername()
+        return self.redirect(username)
+
+    @cherrypy.expose
     def _link_(self, linkid):
         link = g_db.getLink(linkid)
         if link:
