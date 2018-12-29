@@ -12,9 +12,6 @@ __credits__ = "Bill Booth, Bryce Bockman, treebird, Sean Smith"
 import base64
 import cgi
 import datetime
-import hashlib
-import itertools
-import math
 import os
 import pickle
 import random
@@ -22,16 +19,16 @@ import re
 import string
 import sys
 import time
-import urllib
-import urllib2
-import urlparse
-import ConfigParser
+import urllib.request
+import urllib.error
+import urllib.parse
+import configparser
 import cherrypy
 import jinja2
 import shutil
 
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.read('go.cfg')
 
 cfg_fnDatabase = config.get('goconfig', 'cfg_fnDatabase')
@@ -78,7 +75,7 @@ class InvalidKeyword(Error):
 
 def deampify(s):
     """Replace '&amp;'' with '&'."""
-    return string.replace(s, "&amp;", "&")
+    return s.replace("&amp;", "&")
 
 
 def escapeascii(s):
@@ -86,7 +83,7 @@ def escapeascii(s):
 
 
 def randomlink():
-    return random.choice([x for x in g_db.linksById.values() if not x.isGenerative() and x.usage()])
+    return random.choice([x for x in list(g_db.linksById.values()) if not x.isGenerative() and x.usage()])
 
 
 def today():
@@ -94,7 +91,7 @@ def today():
 
 
 def escapekeyword(kw):
-    return urllib.quote_plus(kw, safe="/")
+    return urllib.parse.quote_plus(kw, safe="/")
 
 
 def prettyday(d):
@@ -128,15 +125,11 @@ def prettytime(t):
 
 
 def is_int(s):
-    try:
-        i = int(s)
-        return True
-    except:
-        return False
+    return isinstance(s, int)
 
 
 def makeList(s):
-    if isinstance(s, basestring):
+    if isinstance(s, str):
         return [s]
     elif isinstance(s, list):
         return s
@@ -157,14 +150,14 @@ def getDictFromCookie(cookiename):
     if cookiename not in cherrypy.request.cookie:
         return {}
 
-    v = cherrypy.request.cookie[cookiename].value
-    return dict(urlparse.parse_qsl(cherrypy.request.cookie[cookiename].value))
+    return dict(urllib.parse.parse_qsl(cherrypy.request.cookie[cookiename].value))
 
-sanechars = string.lowercase + string.digits + "-."
+
+sanechars = string.ascii_lowercase + string.digits + "-."
 
 
 def sanitary(s):
-    s = string.lower(s)
+    s = s.lower()
     for a in s[:-1]:
         if a not in sanechars:
             return None
@@ -188,7 +181,7 @@ def getCurrentEditableUrl():
 
 
 def getCurrentEditableUrlQuoted():
-    return urllib2.quote(getCurrentEditableUrl(), safe=":/")
+    return urllib.parse.quote(getCurrentEditableUrl(), safe=":/")
 
 
 def getSSOUsername(redirect=True):
@@ -215,10 +208,10 @@ def getSSOUsername(redirect=True):
         if redirect is True:
             redirect = cherrypy.url(qs=cherrypy.request.query_string)
 
-        raise cherrypy.HTTPRedirect(cfg_urlSSO + urllib2.quote(redirect, safe=":/"))
+        raise cherrypy.HTTPRedirect(cfg_urlSSO + urllib.parse.quote(redirect, safe=":/"))
 
-    sso = urllib2.unquote(cherrypy.request.cookie["issosession"].value)
-    session = map(base64.b64decode, string.split(sso, "-"))
+    sso = urllib.parse.unquote(cherrypy.request.cookie["issosession"].value)
+    session = list(map(base64.b64decode, string.split(sso, "-")))
     return session[0]
 
 
@@ -262,7 +255,7 @@ class Clickable:
             # partition clickdata around 30 days ago
             archival = []
             recent = []
-            for od, nclicks in self.clickData.items():
+            for od, nclicks in list(self.clickData.items()):
                 if todayord - 30 > od:
                     archival.append((od, nclicks))
                 else:
@@ -329,11 +322,11 @@ class Link(Clickable):
 
     def _import(self, line):
         self._url, lists, clickdata, edits, title = line.split(" ", 4)
-        print ">>", line
-        print self._url
+        print(">>", line)
+        print(self._url)
         if self._url in g_db.linksByUrl:
             self._url = g_db.linksByUrl[self._url].linkid
-            print "XYZ", self._url
+            print("XYZ", self._url)
 
         if lists != "None":
             for listname in lists.split("||"):
@@ -384,7 +377,7 @@ class Link(Clickable):
             except KeyError as e:
                 missingKey = e.args[0]
                 d[missingKey] = "{%s}" % missingKey
-            except IndexError as e:
+            except IndexError:
                 return None
 
     def mainKeyword(self):
@@ -491,10 +484,10 @@ class ListOfLinks(Link):
         if is_int(self._url): # linkid needs to be converted for export
             L = g_db.getLink(self._url)
             if L and L in self.links:
-                print L
+                print(L)
                 self._url = L._url
             else:
-                print "fixing unknown dest linkid for", self.name
+                print("fixing unknown dest linkid for", self.name)
                 self._url = "list"
 
         return ("list %s " % self.name) + Link._export(self)
@@ -580,17 +573,17 @@ class LinkDatabase:
         new one if the database doesn't already exist.
         """
         try:
-            print "Loading DB from %s" % db
-            return pickle.load(file(db))
+            print("Loading DB from %s" % db)
+            return pickle.load(open(db, 'rb'))
         except IOError:
-            print sys.exc_info()[1]
-            print "Creating new database..."
+            print(sys.exc_info()[1])
+            print("Creating new database...")
             return LinkDatabase()
 
     def save(self):
         #TODO: Make this get saved to a database, this is a temporary solution to prevent corruption
         tmpfile = cfg_fnDatabase + '.tmp'
-        pickle.dump(self, file(tmpfile, "w"))
+        pickle.dump(self, open(tmpfile, "wb"))
         shutil.copyfile(tmpfile, cfg_fnDatabase)
         os.remove(tmpfile)
 
@@ -672,11 +665,11 @@ class LinkDatabase:
         return self.linksById.get(int(linkid), None)
 
     def getAllLists(self):
-        return byClicks(self.lists.values())
+        return byClicks(list(self.lists.values()))
 
     def getSpecialLinks(self):
         links = set()
-        for R in g_db.regexes.values():
+        for R in list(g_db.regexes.values()):
             links.update(R.links)
 
         links.update(self.getFolders())
@@ -684,10 +677,10 @@ class LinkDatabase:
         return list(links)
 
     def getFolders(self):
-        return [x for x in self.linksById.values() if x.isGenerative()]
+        return [x for x in list(self.linksById.values()) if x.isGenerative()]
 
     def getNonFolders(self):
-        return [x for x in self.linksById.values() if not x.isGenerative()]
+        return [x for x in list(self.linksById.values()) if not x.isGenerative()]
 
     def getList(self, listname, create=False):
         if "\\" in listname:  # is a regex
@@ -727,28 +720,28 @@ class LinkDatabase:
         return "renamed go/%s to go/%s" % (oldname, LL.name)
 
     def _export(self, fn):
-        print "exporting to %s" % fn
-        with file(fn, "w") as f:
-            for k, v in self.variables.items():
+        print("exporting to %s" % fn)
+        with open(fn, "w") as f:
+            for k, v in list(self.variables.items()):
                 f.write("variable %s %s\n" % (k, v))
 
-            for L in self.linksById.values():
+            for L in list(self.linksById.values()):
                 f.write(L._export() + "\n")
 
-            for LL in self.lists.values():
+            for LL in list(self.lists.values()):
                 f.write(LL._export() + "\n")
 
     # for the tsv dumper
     def _dump(self, fh):
-        for link in self.linksById.values():
+        for link in list(self.linksById.values()):
             fh.write(link._dump() + "\n")
 
     def _import(self, fn):
-        print "importing from %s" % fn
-        with file(fn, "r") as f:
+        print("importing from %s" % fn)
+        with open(fn, "r") as f:
             for l in f.readlines():
                 if not l.strip(): continue
-                print l.strip()
+                print(l.strip())
                 a, b = string.split(l, " ", 1)
                 if a == "regex":
                     R = RegexList(self.nextlinkid())
@@ -803,16 +796,16 @@ class Root:
         else:
             url = "/_add_"
 
-        return self.redirect(url + "?" + urllib.urlencode(kwargs))
+        return self.redirect(url + "?" + urllib.parse.urlencode(kwargs))
 
     def redirectToEditList(self, listname, **kwargs):
         baseurl = "/_editlist_/%s?" % escapekeyword(listname)
-        return self.redirect(baseurl + urllib.urlencode(kwargs))
+        return self.redirect(baseurl + urllib.parse.urlencode(kwargs))
 
     @cherrypy.expose
     def robots_txt(self):
         # Specifically for the internal GSA
-        return file("robots.txt").read()
+        return open("robots.txt").read()
 
     @cherrypy.expose
     def favicon_ico(self):
@@ -842,7 +835,7 @@ class Root:
         rest = rest[1:]
 
         forceListDisplay = False
-        action = kwargs.get("action", "list")
+        #action = kwargs.get("action", "list")
 
         if keyword[0] == ".":  # force list page instead of redirect
             if keyword == ".me":
@@ -867,7 +860,7 @@ class Root:
         if not ll:  # nonexistent list
             # check against all special cases
             matches = []
-            for R in g_db.regexes.values():
+            for R in list(g_db.regexes.values()):
                 matches.extend([(R, L, genL) for L, genL in R.matches(keyword)])
 
             if not matches:
@@ -1069,7 +1062,7 @@ class Root:
 
     @cherrypy.expose
     def _override_vars_(self, **kwargs):
-        cherrypy.response.cookie["variables"] = urllib.urlencode(kwargs)
+        cherrypy.response.cookie["variables"] = urllib.parse.urlencode(kwargs)
         cherrypy.response.cookie["variables"]["max-age"] = 10 * 365 * 24 * 3600
 
         return self.redirect("variables")
@@ -1107,13 +1100,13 @@ def main():
     conf = {'/images': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/images"},
             '/css': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/css"},
             '/js': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/js"}}
-    print "Cherrypy conf: %s" % conf
+    print("Cherrypy conf: %s" % conf)
     cherrypy.quickstart(Root(), "/", config=conf)
-
-g_db = LinkDatabase.load()
 
 
 if __name__ == "__main__":
+
+    g_db = LinkDatabase.load()
 
     if "import" in sys.argv:
         g_db._import("newterms.txt")
