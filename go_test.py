@@ -100,12 +100,6 @@ class GeneralTestCases(unittest.TestCase):
         timestamp = time.time() - (95 * 24 * 3600)
         self.assertEqual('3 months ago', go.prettytime(timestamp))
 
-    def test_should_return_true_for_int(self):
-        self.assertTrue(go.is_int(5))
-
-    def test_should_return_false_for_int(self):
-        self.assertFalse(go.is_int('foo'))
-
     def test_makeList_should_return_list(self):
         """
         Verify that the makeList function returns a list of the items passed in using various data structures
