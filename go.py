@@ -10,7 +10,6 @@ __author__ = "Saul Pwanson <saul@pwanson.com>"
 __credits__ = "Bill Booth, Bryce Bockman, treebird, Sean Smith"
 
 import base64
-import cgi
 import datetime
 import os
 import pickle
@@ -26,6 +25,7 @@ import configparser
 import cherrypy
 import jinja2
 import shutil
+import html
 
 
 config = configparser.ConfigParser()
@@ -79,7 +79,7 @@ def deampify(s):
 
 
 def escapeascii(s):
-    return cgi.escape(s).encode("ascii", "xmlcharrefreplace")
+    return html.escape(s).encode("ascii", "xmlcharrefreplace")
 
 
 def randomlink():
@@ -122,10 +122,6 @@ def prettytime(t):
         return '%d days ago' % (dt / (24 * 3600))
     else:
         return '%d months ago' % (dt / (30 * 24*3600))
-
-
-def is_int(s):
-    return isinstance(s, int)
 
 
 def makeList(s):
@@ -481,7 +477,7 @@ class ListOfLinks(Link):
         return self._url == str(link.linkid) or self.url() == link.url()
 
     def _export(self):
-        if is_int(self._url): # linkid needs to be converted for export
+        if isinstance(self._url, int): # linkid needs to be converted for export
             L = g_db.getLink(self._url)
             if L and L in self.links:
                 print(L)
