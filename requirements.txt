@@ -1,2 +1,2 @@
-jinja2==2.8
-cherrypy==6.0.1
+jinja2==2.10
+cherrypy==18.1.0

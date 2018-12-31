@@ -17,8 +17,8 @@
         {% endif %}
         </li>
     {% endif %}
-   
-    {% if is_int(LL.name) %}
+
+    {% if isinstance(LL.name, int) %}
         <li>
         {{ LL.name }} has integer name,
         {% if vacwm %}
