@@ -21,9 +21,8 @@
 <div class="panel-body">
 <table class="table">
 <tr class="topic">
-<td/>
-<td>
-<h4>The <a href="/">go/ redirector</a> is a mnemonic URL shortener and a link database.</h4>
+<td colspan="3">
+<h4 class="center">The <a href="/">go/ redirector</a> is a mnemonic URL shortener and a link database.</h4>
 </td>
 </tr>
 <tr class="topic">
@@ -130,7 +129,7 @@ variable overrides.</p> </td> </tr>
  <a title="{{ L.clickinfo() }}" class="pull-left fineprint" style="width: 1em;">
 #{% if idx > 0 %}{{ idx }}{% else %}&nbsp;{% endif %}</a>
  </b>
- <div class="container link" id="{{ L.linkid }}">
+ <div class="link" id="{{ L.linkid }}">
   <div class="shallow">
 
     <a title="{{ L._url }}" href="{{ L.url() }}">

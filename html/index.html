@@ -12,8 +12,9 @@
 <div class="row">
 <div class="col-md-6">
 <div class="panel panel-default">
-<h4 class="center"><a href="/special">Special Cases</a></h4>
+
 <table class="table table-striped">
+<tr><td colspan="3"><h4 class="center"><a href="/special">Special Cases</a></h4></td></tr>
 {% for idx, link in enumerate(folderLinks[:15]): %}
     {{ renderlink(idx + 1, link, username) }}
 {% endfor %}
@@ -23,8 +24,9 @@
 
 <div class="col-md-6">
 <div class="panel panel-default">
-<h4 class="center"><a href="/toplinks?n=100">Recent Top Links</a></h4>
+
 <table class="table table-striped">
+<tr><td colspan="3"><h4 class="center"><a href="/toplinks?n=100">Recent Top Links</a></h4></td></tr>
 <!-- Check to see if topLinks is empty (new database) -->
 {% if topLinks %}
     {% for idx, link in enumerate(topLinks[:8]): %}
