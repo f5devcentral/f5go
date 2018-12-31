@@ -651,7 +651,7 @@ class LinkDatabase:
 
     def deleteList(self, LL):
         for link in list(LL.links):
-            L.removeLink(link)
+            LL.removeLink(link)
 
         del self.lists[LL.name]
         self.deleteLink(LL)
@@ -897,7 +897,6 @@ class Root:
 
     @cherrypy.expose
     def _login_(self, redirect=""):
-        username = getSSOUsername(redirect)
         if redirect:
             return self.redirect(redirect)
         return self.undirect()
@@ -951,7 +950,6 @@ class Root:
 
     @cherrypy.expose
     def _delete_(self, linkid, returnto=""):
-        username = getSSOUsername()
 
         g_db.deleteLink(g_db.getLink(linkid))
 
