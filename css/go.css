@@ -5,9 +5,6 @@ a:hover {
     opacity: 1.0 !important;
 }
 
-.column {
-    border: 2px ridge gray;
-}
 
 .link {
     overflow: hidden;
@@ -24,22 +21,13 @@ a:hover {
 }
 
 table.table { margin-bottom: 10px; }
+td {
+  white-space: normal !important;
+}
 
-table.shallow td { padding: 4px; }
+table.shallow td { padding: 4px; }*/
 
 .link div.shallow { min-height: 0px }
-
-.variables {
-    border: 1px solid black;
-    width: 100%;
-    margin: 0 auto;
-}
-
-.variables td, .variables th {
-    border: 1px solid black;
-    text-align: center;
-    width: 30%;
-}
 
 .linkedit td:first-child {
     font-weight: bold;
@@ -60,4 +48,18 @@ table.shallow td { padding: 4px; }
 .linkedit input[type="checkbox"] {
     margin-right: .5em;
     vertical-align: top;
+}
+
+.help tr.topic > td:first-child {
+    text-align: center;
+    width: 10%;
+}
+
+.help tr.topic > td {
+    padding: 1em;
+
+}
+
+table td .red {
+    background-color: red
 }

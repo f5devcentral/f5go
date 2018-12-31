@@ -1,10 +1,13 @@
 <form action="/_override_vars_">
-  <table class="table variables">
+  <table class="table table-bordered">
+    <thead>
     <tr>
       <th><a href="/variables">Variables</a></th>
       <th>Replace with</th>
       <th><input type="submit" value="Save Local Overrides"/></th>
     </tr>
+    </thead>
+    <tbody>
 
     {% if regexedit == "regex" %}
     <tr>
@@ -32,5 +35,6 @@
       </td>
     </tr>
     {% endfor %}
-  </table> 
+    </tbody>
+  </table>
 </form>

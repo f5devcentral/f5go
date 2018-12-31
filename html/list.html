@@ -10,10 +10,11 @@
 
 {% block body %}
 
-<div class="row-fluid">
+<div class="row">
 
 <h3 class="center">{{ L.name }}</h3>
-  <div class="column span8 offset2">
+  <div class="col-md-10 col-md-offset-1">
+  <div class="panel panel-default">
 
   <table class="table table-striped">
 {% if L.linkid > 0 %}
@@ -60,6 +61,7 @@
       </tr>
   {% endfor %}
   </table>
+  </div>
   </div>
 
   </div>

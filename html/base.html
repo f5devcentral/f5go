@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html lang="en"><head>
 <title>{% block title %}go/{% block titlekeyword %}{% endblock titlekeyword %}{% endblock title %}</title>
-<link rel="stylesheet" href="/css/bootstrap.min.css" media="screen"/>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="/css/go.css" media="screen"/>
 <link rel="shortcut icon" href="{{cfg_urlFavicon}}" />
 
@@ -9,13 +9,13 @@
 <body>
 
 <div class="container-fluid">
-<div class="row-fluid">
+<div class="row">
 
-<div class="span4">
+<div class="col-md-4">
 <h3><a href="/" title="Redirector home">go</a>/{% block keyword %}{% endblock %}</h3>
 </div>
 
-<div class="span4 pull-right">
+<div class="col-md-4 pull-right">
 <a class="pull-right" href="/help">go/help</a>
 <br/>
 <form action="/search">
@@ -47,9 +47,5 @@
     {% endif %}
 </div>
 
-<script type="text/javascript">
-{% block javascript %}
-{% endblock javascript %}
-</script>
 </body>
 </html>

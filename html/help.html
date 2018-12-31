@@ -4,17 +4,6 @@
 
 {% block title %}go/help{% endblock title %}
 
-{% block css %}
-.help tr.topic > td:first-child {
-    text-align: center;
-    width: 10%;
-}
-
-.help tr.topic > td {
-    padding: 1em;
-
-}
-{% endblock css %}
 
 {% macro badge(n) -%}
 <span class="badge badge-important">{{ n }}</span>
@@ -26,9 +15,11 @@
 
 {% block body %}
 
-<div class="row-fluid">
-<div class="span8 offset2">
-<table border="1px solid black" class="help">
+<div class="row">
+<div class="col-md-10 col-md-offset-1">
+<div class="panel panel-default">
+<div class="panel-body">
+<table class="table">
 <tr class="topic">
 <td/>
 <td>
@@ -139,11 +130,11 @@ variable overrides.</p> </td> </tr>
  <a title="{{ L.clickinfo() }}" class="pull-left fineprint" style="width: 1em;">
 #{% if idx > 0 %}{{ idx }}{% else %}&nbsp;{% endif %}</a>
  </b>
- <div class="container-fluid link" id="{{ L.linkid }}">
+ <div class="container link" id="{{ L.linkid }}">
   <div class="shallow">
 
     <a title="{{ L._url }}" href="{{ L.url() }}">
-      <div class="shallow example span4">{{ badge(1) }}
+      <div class="shallow example col-md-4">{{ badge(1) }}
        {% if usage != "" %}
           <b>go/{{ usage }}</b>
        {% else %}
@@ -151,7 +142,7 @@ variable overrides.</p> </td> </tr>
        {% endif %}
       </div>
 
-      <div class="shallow span8">{{ badge(2) }}{{ L.title or L._url|truncate(80, True) }}</div>
+      <div class="shallow col-md-8">{{ badge(2) }}{{ L.title or L._url|truncate(80, True) }}</div>
     </a>
   </div>
     <div class="fineprint shallow meta text">
@@ -207,7 +198,7 @@ link.</p>
 <h4>Editing Links</h4>
 </td>
 <td>
-<div class="column">
+<div>
 <a class="pull-right" style="margin-right: .25em;">{{ badge(6) }} DELETE</a>
 
 <div class="inner">
@@ -255,6 +246,7 @@ link.</p>
    </tr>
   </table>
 </div>
+</div>
 </div> {# end inner #}
 
 <br/>
@@ -272,6 +264,7 @@ caution!</p>
 </td>
 </tr>
 </table>
+</div>
 </div>
 </div>
 
