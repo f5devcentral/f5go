@@ -22,7 +22,8 @@
   <td colspan="3">
     <form action="/_setbehavior_" style="margin: 0; text-align: center;">
     <input type="hidden" name="keyword" value="{{ keyword }}"/>
-    <b><a href="/{{ keyword|escapekeyword }}">go/{{ keyword }}</a></b> redirects to <select name="behavior" {% if not username %}disabled="true"{% endif %}>
+    <b><a href="/{{ keyword|escapekeyword }}">go/{{ keyword }}</a></b> redirects to
+    <select name="behavior" {% if not username %}disabled="true"{% endif %}>
        <option value="list" {% if L._url == "list" %}selected{% endif %}>this list of links</option>
        <option value="freshest" {% if L._url == "freshest" %}selected{% endif %}>the freshest link</option>
        <option value="top" {% if L._url == "top" %}selected{% endif %}>the most used link</option>
@@ -32,7 +33,7 @@
        {% endfor %}
      </select>
      {% if username %}
-     <input type="submit" value="Change Behavior"/>
+     <button class="btn btn-primary btn-sm" type="submit" value="Change Behavior">Change Behavior</button>
      {% endif %}
     </form>
     </td>
