@@ -762,7 +762,7 @@ class LinkDatabase:
         self.save()
 
 
-class Root:
+class Root(object):
     def redirect(self, url, status=307):
         cherrypy.response.status = status
         cherrypy.response.headers["Location"] = url
@@ -831,7 +831,6 @@ class Root:
         rest = rest[1:]
 
         forceListDisplay = False
-        #action = kwargs.get("action", "list")
 
         if keyword[0] == ".":  # force list page instead of redirect
             if keyword == ".me":
