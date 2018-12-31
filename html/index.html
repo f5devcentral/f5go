@@ -9,8 +9,9 @@
 {% block keyword %}<form style="display: inline;" action="/"><input type="text" name="keyword" size="12" value=""/></form>{% endblock %}
 
 {% block body %}
-<div class="row-fluid">
-<div class="span6 column">
+<div class="row">
+<div class="col-md-6">
+<div class="panel panel-default">
 <h4 class="center"><a href="/special">Special Cases</a></h4>
 <table class="table table-striped">
 {% for idx, link in enumerate(folderLinks[:15]): %}
@@ -18,8 +19,10 @@
 {% endfor %}
 </table>
 </div>
+</div>
 
-<div class="span6 column">
+<div class="col-md-6">
+<div class="panel panel-default">
 <h4 class="center"><a href="/toplinks?n=100">Recent Top Links</a></h4>
 <table class="table table-striped">
 <!-- Check to see if topLinks is empty (new database) -->
@@ -32,6 +35,7 @@
     {% endfor %}
 {% endif %}
 </table>
+</div>
 </div>
 
 </div>

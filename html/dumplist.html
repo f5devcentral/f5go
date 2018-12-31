@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 
 {% block keyword %}:dumplist{% endblock %}
-{% block css %}
-    .red { background-color: red }
-{% endblock css %}
 {% block body %}
-<table border="1px">
+<div class="panel panel-default">
+<table>
 <tr>
     <th>L.linkid</th>
     <th>L.url</th>
@@ -27,6 +25,7 @@
   </tr>
 {% endfor %}
 </table>
+</div>
 
 {% endblock %}
 

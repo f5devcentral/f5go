@@ -8,14 +8,16 @@
 
 {% block body %}
 
-<div class="row-fluid">
+<div class="row">
 <h3 class="center">Top {{ n }} Links</h3>
-<div class="span12 column">
+<div class="col-md-10 col-md-offset-1">
+<div class="panel panel-default">
 <table class="table table-striped">
   {% for idx, link in enumerate(byClicks(g_db.getNonFolders())[:n|int]): %}
     {{ renderlink(idx+1, link, username) }}
   {% endfor %}
 </table>
+</div>
 </div>
 </div>
 {% endblock body %}
