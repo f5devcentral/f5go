@@ -7,7 +7,7 @@ common phone numbers, and just about everyone needs a way around bookmarks.
 """
 
 __author__ = "Saul Pwanson <saul@pwanson.com>"
-__credits__ = "Bill Booth, Bryce Bockman, treebird, Sean Smith"
+__credits__ = "Bill Booth, Bryce Bockman, treebird, Sean Smith, layertwo"
 
 import base64
 import datetime
@@ -762,7 +762,7 @@ class LinkDatabase:
         self.save()
 
 
-class Root(object):
+class Root:
     def redirect(self, url, status=307):
         cherrypy.response.status = status
         cherrypy.response.headers["Location"] = url
