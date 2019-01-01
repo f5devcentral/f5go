@@ -1,7 +1,6 @@
 language: python
 python:
-  - "3.4"
-  - "3.7"
+  - "3.6"
 # command to install dependencies for test purposes.
 # Pytest is only needed for development so install seperately
 # from the requirements.
