@@ -1,11 +1,11 @@
 language: python
 python:
-  - "2.6"
-  - "2.7"
+  - "3.4"
+  - "3.7"
 # command to install dependencies for test purposes.
 # Pytest is only needed for development so install seperately
 # from the requirements.
 install:
-  - "pip install pytest"
-  - "pip install -r requirements.txt"
-script: "py.test"
+  - "pip3 install nose"
+  - "pip3 install -r requirements.txt"
+script: "nosetests go_test.py"
