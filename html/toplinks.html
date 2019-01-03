@@ -13,7 +13,7 @@
 <div class="col-md-10 col-md-offset-1">
 <div class="panel panel-default">
 <table class="table table-striped">
-  {% for idx, link in enumerate(byClicks(g_db.getNonFolders())[:n|int]): %}
+  {% for link in topLinks: %}
     {{ renderlink(idx+1, link, username) }}
   {% endfor %}
 </table>

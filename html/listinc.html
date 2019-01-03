@@ -2,12 +2,12 @@
     <div class="pull-right">
       <a
     {% if link.edits %}
-      {% set lastEditTime, lastEditName = link.lastEdit() %}
+      {% set lastEditTime, lastEditName = "PLACEHOLDER LINK EDIT" %}
       title="edited {{ lastEditTime|time_t }} by {{ lastEditName }}"
     {% else %}
       title="edit"
     {% endif %}
-    href="/_edit_/{{ link.linkid }}{% if username %}?returnto={{ keyword }}{% endif %}"><span class="glyphicon glyphicon-edit"></span></a>
+    href="/_edit_/{{ link.id }}?returnto={{ keyword }}"><span class="glyphicon glyphicon-edit"></span></a>
     </div>
 {%- endmacro %}
 
@@ -23,13 +23,13 @@
 <tr>
 <td>
 <b>
- <a title="{{ link.clickinfo() }}" class="pull-left fineprint" style="width: 1em;">#{% if idx > 0 %}{{ idx }}{% else %}&nbsp;{% endif %}</a>
+ <a title="PLACEHOLDER" class="pull-left fineprint" style="width: 1em;">#{% if idx > 0 %}{{ idx }}{% else %}&nbsp;{% endif %}</a>
  </b>
- <div class="row link" id="{{ link.linkid }}">
+ <div class="row link" id="{{ link.id }}">
   <div class="shallow">
 
-       {% set usage = link.usage() %}
-    <a title="{{ link._url }}" href="{{ link.url() }}">
+       {% set usage = "PLACEHOLDER_USAGE"  %}
+    <a title="{{ link.url }}" href="{{ link.url }}">
       <div class="shallow example col-md-4">
        {% if usage != "" %}
          <b>go/{{ usage }}</b>
@@ -38,13 +38,12 @@
        {% endif %}
       </div>
 
-      <div class="shallow col-md-8">{{ link.title or link._url|truncate(80, True) }}</div>
+      <div class="shallow col-md-8">{{ link.title or link.url|truncate(80, True) }}</div>
     </a>
   </div>
     <div class="fineprint shallow meta text">
-      {% for K in link.lists if K.name and K.usage() != usage: %}
-      {% set flDirect = K.goesDirectlyTo(link) %}
-      <a href="/.{{ K.name|escapekeyword }}" title="{{ K.clickinfo() }}">{% if flDirect %}<b>{{ K.usage() }}</b>{% else %}<i>{{ K.usage() }}</i>{% endif %}</a>
+      {% for K in link.lists if K.name: %}
+      <a href="/.{{ K.name|escapekeyword }}" title="PLACEHOLDER K clickinfo"></a>
       {% endfor %}
     </div>
 

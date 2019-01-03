@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-{% set popularLinks = L.getPopularLinks() %}
 <!-- {% set username = getSSOUsername(False) %} -->
 
 {% from "listinc.html" import renderlink, clickstats with context %}
@@ -17,19 +16,18 @@
   <div class="panel panel-default">
 
   <table class="table table-striped">
-{% if L.linkid > 0 %}
   <tr>
   <td colspan="3">
     <form action="/_setbehavior_" style="margin: 0; text-align: center;">
     <input type="hidden" name="keyword" value="{{ keyword }}"/>
     <b><a href="/{{ keyword|escapekeyword }}">go/{{ keyword }}</a></b> redirects to
     <select name="behavior" {% if not username %}disabled="true"{% endif %}>
-       <option value="list" {% if L._url == "list" %}selected{% endif %}>this list of links</option>
-       <option value="freshest" {% if L._url == "freshest" %}selected{% endif %}>the freshest link</option>
-       <option value="top" {% if L._url == "top" %}selected{% endif %}>the most used link</option>
-       <option value="random" {% if L._url == "random" %}selected{% endif %}>a random link</option>
+       <option value="list" {% if L.mode == "list" %}selected{% endif %}>this list of links</option>
+       <option value="freshest" {% if L.mode == "freshest" %}selected{% endif %}>the freshest link</option>
+       <option value="top" {% if L.mode == "top" %}selected{% endif %}>the most used link</option>
+       <option value="random" {% if L.mode == "random" %}selected{% endif %}>a random link</option>
        {% for link in popularLinks %}
-           <option value="{{ link.linkid }}" {% if L._url == str(link.linkid) %}selected{% endif %}>{{ link.title or link._url }}</option>
+           <option value="{{ link.linkid }}" {% if L.mode == str(link.linkid) %}selected{% endif %}>{{ link.title or link.mode }}</option>
        {% endfor %}
      </select>
      {% if username %}
@@ -38,8 +36,7 @@
     </form>
     </td>
     </tr>
-{% endif %}
-{% if L.linkid != -1 %}
+    <!-- todo need count of links -->
     <tr>
     <td colspan="3">
     <h4 class="center">
@@ -51,7 +48,6 @@
   </h4>
     </td>
   </tr>
-{% endif %}
 
   {% for idx, link in enumerate(popularLinks): %}
       {{ renderlink(idx+1, link, username) }}
