@@ -27,11 +27,8 @@
 <tr><td colspan="3"><h4 class="center"><a href="/toplinks?n=100">Recent Top Links</a></h4></td></tr>
 <!-- Check to see if topLinks is empty (new database) -->
 {% if topLinks %}
-    {% for idx, link in enumerate(topLinks[:8]): %}
-        {{ renderlink(idx+1, link, username) }}
-    {% endfor %}
-    {% for idx in sample(range(0, len(topLinks)), 1): %}
-        {{ renderlink(idx+1, topLinks[idx], username) }}
+    {% for link in topLinks %}
+        {{ renderlink(topLinks.index(link)+1, link, username) }}
     {% endfor %}
 {% endif %}
 </table>

@@ -14,7 +14,7 @@
 <div class="panel panel-default">
 <table class="table table-striped">
   {% for link in topLinks: %}
-    {{ renderlink(idx+1, link, username) }}
+    {{ renderlink(topLinks.index(link) + 1, link, username) }}
   {% endfor %}
 </table>
 </div>

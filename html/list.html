@@ -16,6 +16,7 @@
   <div class="panel panel-default">
 
   <table class="table table-striped">
+  {% if L %}
   <tr>
   <td colspan="3">
     <form action="/_setbehavior_" style="margin: 0; text-align: center;">
@@ -37,11 +38,12 @@
     </td>
     </tr>
     <!-- todo need count of links -->
+    {% endif %}
     <tr>
     <td colspan="3">
     <h4 class="center">
   {% if username %}
-    <a class="center" href="/_add_/{{ keyword|escapekeyword }}">Add new link</a>
+    <a class="center" href="/_add_?ll={{ keyword|escapekeyword }}">Add new link</a>
   {% else %}
     <a href="/_login_?redirect={{ getCurrentEditableUrlQuoted() }}">Login to edit this list</a>
   {% endif %}

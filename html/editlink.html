@@ -51,10 +51,10 @@
    <tr>
      <td>Lists</td>
      <td>
-      {% for t in L.lists %}
-       <input type="checkbox" name="lists" checked="checked" value="{{ t }}">
-       <a href="/.{{ t.name }}">
-       <b>{{ t.name }}</b>
+      {% for t in lists %}
+       <input type="checkbox" name="lists" checked="checked">
+       <a href="/.{{ t['name'] }}">
+       <b>{{ t['name'] }}</b>
        </a></input>
        <br/>
       {% endfor %}

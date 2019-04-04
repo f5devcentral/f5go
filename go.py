@@ -319,10 +319,9 @@ class Root:
     def index(self, **kwargs):
         self.redirectIfNotFullHostname()
 
-        topLinks = []
-
-        if "keyword" in kwargs:
-            return self.redirect("/" + kwargs["keyword"])
+        topLinks = self.db.query(Link).order_by(Link.no_clicks.desc()).limit(10).all()
+        if 'keyword' in kwargs:
+            return self.redirect("/" + kwargs['keyword'])
 
         return env.get_template('index.html').render(folderLinks=[], topLinks=topLinks, allLists=[], now=today())
 
@@ -402,26 +401,30 @@ class Root:
 
     @cherrypy.expose
     def _add_(self, *args, **kwargs):
-        # _add_/tag1/tag2/tag3
+        # _add_?ll=tag1
+        _ll = kwargs.get('ll', '')
 
-        return env.get_template("editlink.html").render(L=[], returnto=(args and args[0] or None), **kwargs)
+        LL = self.db.query(ListOfLinks).filter_by(name=_ll).all()
+        if LL:
+            return env.get_template("editlink.html").render(L=[], lists=[l.__dict__ for l in LL], returnto=_ll, **kwargs)
+
+        else:
+            return env.get_template("editlink.html").render(L=[], lists=[{'name': _ll}], returnto=_ll, **kwargs)
 
     @cherrypy.expose
     def _edit_(self, _id, **kwargs):
         link = self.db.query(Link).filter_by(id=_id).first()
 
         if link:
-            return env.get_template("editlink.html").render(L=link, **kwargs)
+            return env.get_template("editlink.html").render(L=link, lists=link.lists, **kwargs)
 
         # edit new link
+        # TODO redirect to _add_
         return env.get_template("editlink.html").render(L=[], **kwargs)
 
     @cherrypy.expose
     def _editlist_(self, keyword, **kwargs):
         LL = self.db.query(ListOfLinks).filter_by(name=keyword).first()
-        if not LL:
-            # TODO what to do here?
-            LL  = []
         return env.get_template("list.html").render(L=LL, keyword=keyword)
 
     @cherrypy.expose
