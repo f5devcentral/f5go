@@ -26,6 +26,7 @@ import cherrypy
 import jinja2
 import shutil
 import html
+from pprint import pprint
 
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Table, ForeignKey
 from sqlalchemy.orm import relationship
@@ -400,6 +401,7 @@ class Root:
         return self.notfound("Link %s does not exist" % linkid)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['GET','POST'])
     def _add_(self, *args, **kwargs):
         # _add_?ll=tag1
         _ll = kwargs.get('ll', '')
@@ -452,28 +454,32 @@ class Root:
         url = ''.join(kwargs.get('url', '').split())
         otherlists = list(set(kwargs.get('otherlists', []).split()))
 
-        link = self.db.query(Link).filter_by(id=kwargs.get('linkid', 0)).first()
-        if not link:
-            link = Link()
+        if title and url:
 
-        link.title = title
-        link.url = url
+            link = self.db.query(Link).filter_by(id=kwargs.get('linkid', 0)).first()
+            if not link:
+                link = Link()
 
-        for l in otherlists:
-            LL = self.db.query(ListOfLinks).filter_by(name=l).first()
+            link.title = title
+            link.url = url
 
-            if not LL:
-                LL = ListOfLinks(name=l)
+            for l in otherlists:
+                LL = self.db.query(ListOfLinks).filter_by(name=l).first()
 
-            LL.links.append(link)
-            self.db.add(LL)
+                if not LL:
+                    LL = ListOfLinks(name=l)
 
-        try:
+                LL.links.append(link)
+                self.db.add(LL)
 
-            self.db.commit()
-        except IntegrityError as e:
-            self.db.rollback()
-            return self.redirectToEditLink(error=e, **kwargs)
+            self.db.add(link)
+
+            try:
+                self.db.commit()
+            except IntegrityError as e:
+                self.db.rollback()
+                return self.redirectToEditLink(error=e, **kwargs)
+
 
         return self.redirect("/." + kwargs.get("returnto", ""))
 
