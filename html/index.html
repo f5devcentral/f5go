@@ -13,8 +13,8 @@
 
 <table class="table table-striped">
 <tr><td colspan="3"><h4 class="center"><a href="/special">Special Cases</a></h4></td></tr>
-{% for idx, link in enumerate(folderLinks[:15]): %}
-    {{ renderlink(idx + 1, link, username) }}
+{% for link in folderLinks[:15]: %}
+    {{ renderlink(folderLinks.index(link) + 1, link, username) }}
 {% endfor %}
 </table>
 </div>
@@ -28,7 +28,9 @@
 <!-- Check to see if topLinks is empty (new database) -->
 {% if topLinks %}
     {% for link in topLinks %}
+    {% if link.no_clicks > 0 %}
         {{ renderlink(topLinks.index(link)+1, link, username) }}
+    {% endif %}
     {% endfor %}
 {% endif %}
 </table>
@@ -40,10 +42,11 @@
 <h4>Lists used in last 30 days</h4>
 <div>
   {% for LL in allLists %}
+  <!-- LL.opacity(now) -->
   <div class="cloudli">
-    <a style="opacity: {{ LL.opacity(now) }};"
+    <a style="opacity: {{ opacity(LL) }};"
        href="/.{{ LL.name|escapekeyword }}"
-       title="{{ LL.clickinfo() }}">go/{{ LL.name }}{% if len(LL.links) > 1 %}({{ len(LL.links) }}){% endif %}</a>
+       title="{{ LL.no_clicks }}">go/{{ LL.name }}{% if len(LL.links) > 1 %}({{ len(LL.links) }}){% endif %}</a>
 </div>
 {% endfor %}
 </div>

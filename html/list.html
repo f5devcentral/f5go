@@ -51,8 +51,12 @@
     </td>
   </tr>
 
-  {% for idx, link in enumerate(popularLinks): %}
-      {{ renderlink(idx+1, link, username) }}
+  {% for link in popularLinks %}
+      {% if popularLinks.index(link) == 0 %}
+        {{ renderlink(popularLinks.index(link) + 1, link, username, L.name) }}
+      {% else %}
+        {{ renderlink(popularLinks.index(link) + 1, link, username) }}
+      {% endif %}
   {% else %}
       <tr>
       <td><h4 class="center">No links for this keyword.</h4>

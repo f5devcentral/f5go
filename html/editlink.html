@@ -52,7 +52,7 @@
      <td>Lists</td>
      <td>
       {% for t in lists %}
-       <input type="checkbox" name="lists" checked="checked">
+       <input type="checkbox" value={{ t['name'] }} name="lists" checked="checked">
        <a href="/.{{ t['name'] }}">
        <b>{{ t['name'] }}</b>
        </a></input>

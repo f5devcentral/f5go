@@ -13,9 +13,13 @@
 <div class="col-md-10 col-md-offset-1">
 <div class="panel panel-default">
 <table class="table table-striped">
+{% if topLinks %}
   {% for link in topLinks: %}
     {{ renderlink(topLinks.index(link) + 1, link, username) }}
   {% endfor %}
+{% else %}
+<tr><h1>TODO No Top Links</h1></tr>
+{% endif %}
 </table>
 </div>
 </div>

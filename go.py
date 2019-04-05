@@ -12,11 +12,9 @@ __credits__ = "Bill Booth, Bryce Bockman, treebird, Sean Smith, layertwo"
 import base64
 import datetime
 import os
-import pickle
 import random
 import re
 import string
-import sys
 import time
 import urllib.request
 import urllib.error
@@ -24,11 +22,10 @@ import urllib.parse
 import configparser
 import cherrypy
 import jinja2
-import shutil
 import html
 from pprint import pprint
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Table, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Table, ForeignKey, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import IntegrityError
@@ -106,6 +103,13 @@ def today():
 
 def escapekeyword(kw):
     return urllib.parse.quote_plus(kw, safe="/")
+
+
+def opacity(LL):
+    """ goes from 1.0 (today) to 0.2 (a month ago)"""
+    dt = (datetime.datetime.today() - LL.last_used)
+    c = min(1, max(0.2, (30 - dt.days) / 30))
+    return "%.02f" % c
 
 
 def prettyday(d):
@@ -235,6 +239,7 @@ class ListOfLinks(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=True)
     mode = Column(String, nullable=False, default='freshest')
+    last_used = Column(DateTime)
     links = relationship('Link', back_populates="lists", secondary=association_table)
 
 
@@ -244,7 +249,7 @@ class Link(Base):
     url = Column(String, unique=True, nullable=False)
     title = Column(String)
     no_clicks = Column(Integer, default=0)
-    last_click = Column(DateTime)
+    last_used = Column(DateTime)
 
     # 1 to many
 #    edits = relationship('Edit')
@@ -312,19 +317,25 @@ class Root:
 
     @cherrypy.expose
     def lucky(self):
-        luckylink = random.choice(g_db.getNonFolders())
-        luckylink.clicked()
-        return self.redirect(deampify(luckylink.url()))
+
+        link = self.db.query(Link).order_by(func.random()).first()
+        link.no_clicks += 1
+        link.last_used = datetime.datetime.utcnow()
+        self.db.commit()
+
+        return self.redirect(deampify(link.url))
 
     @cherrypy.expose
     def index(self, **kwargs):
         self.redirectIfNotFullHostname()
 
         topLinks = self.db.query(Link).order_by(Link.no_clicks.desc()).limit(10).all()
+        filter_after = datetime.datetime.today() - datetime.timedelta(days = 30)
+        allLists = self.db.query(ListOfLinks).filter(ListOfLinks.last_used).order_by(ListOfLinks.last_used > filter_after).all()
         if 'keyword' in kwargs:
             return self.redirect("/" + kwargs['keyword'])
 
-        return env.get_template('index.html').render(folderLinks=[], topLinks=topLinks, allLists=[], now=today())
+        return env.get_template('index.html').render(folderLinks=[], topLinks=topLinks, allLists=allLists, now=today())
 
     @cherrypy.expose
     def default(self, *rest, **kwargs):
@@ -364,8 +375,10 @@ class Root:
                     # redirect to list if unknown mode
                     return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
 
+                now = datetime.datetime.utcnow()
                 link.no_clicks += 1
-                link.last_click = datetime.datetime.utcnow()
+                link.last_used = now
+                LL.last_used = now
                 self.db.commit()
 
                 self.redirect(url=link.url)
@@ -398,10 +411,10 @@ class Root:
             return self.redirect(link.url, status=301)
 
         cherrypy.response.status = 404
-        return self.notfound("Link %s does not exist" % linkid)
+        return self.notfound("Link %s does not exist" % _id)
 
     @cherrypy.expose
-    @cherrypy.tools.allow(methods=['GET','POST'])
+   # @cherrypy.tools.allow(methods=['GET','POST'])
     def _add_(self, *args, **kwargs):
         # _add_?ll=tag1
         _ll = kwargs.get('ll', '')
@@ -439,16 +452,19 @@ class Root:
         return self.redirect("/." + keyword)
 
     @cherrypy.expose
-    def _delete_(self, linkid, returnto=""):
+    def _delete_(self, _id, returnto=""):
 
-        g_db.deleteLink(g_db.getLink(linkid))
+        try:
+            self.db.query(Link).filter_by(id=_id).delete()
+            self.db.commit()
+        except IntegrityError:
+            print('Unable to delete Link with ID {}'.format(_id))
 
         return self.redirect("/." + returnto)
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])
     def _modify_(self, **kwargs):
-        username = getSSOUsername()
 
         title = kwargs.get('title', '')
         url = ''.join(kwargs.get('url', '').split())
@@ -462,8 +478,10 @@ class Root:
 
             link.title = title
             link.url = url
+            otherlists.append(kwargs.get('lists', []))
 
             for l in otherlists:
+                pprint(l)
                 LL = self.db.query(ListOfLinks).filter_by(name=l).first()
 
                 if not LL:
@@ -510,9 +528,6 @@ class Root:
 
     @cherrypy.expose
     def _set_variable_(self, varname="", value=""):
-        if varname and value:
-            g_db.variables[varname] = value
-            g_db.save()
 
         return self.redirect("/variables")
 
