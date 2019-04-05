@@ -329,7 +329,7 @@ class Root:
     def index(self, **kwargs):
         self.redirectIfNotFullHostname()
 
-        topLinks = self.db.query(Link).order_by(Link.no_clicks.desc()).limit(10).all()
+        topLinks = self.db.query(Link).order_by(Link.no_clicks.desc()).limit(8).all()
         filter_after = datetime.datetime.today() - datetime.timedelta(days = 30)
         allLists = self.db.query(ListOfLinks).filter(ListOfLinks.last_used).order_by(ListOfLinks.last_used > filter_after).all()
         if 'keyword' in kwargs:
@@ -468,9 +468,9 @@ class Root:
 
         title = kwargs.get('title', '')
         url = ''.join(kwargs.get('url', '').split())
-        otherlists = list(set(kwargs.get('otherlists', []).split()))
 
         if title and url:
+            otherlists = list(set(kwargs.get('otherlists', []).split()))
 
             link = self.db.query(Link).filter_by(id=kwargs.get('linkid', 0)).first()
             if not link:
@@ -478,10 +478,9 @@ class Root:
 
             link.title = title
             link.url = url
-            otherlists.append(kwargs.get('lists', []))
+            link.lists.clear()
 
-            for l in otherlists:
-                pprint(l)
+            for l in otherlists.extend(kwargs.get('lists', [])):
                 LL = self.db.query(ListOfLinks).filter_by(name=l).first()
 
                 if not LL:
@@ -497,7 +496,6 @@ class Root:
             except IntegrityError as e:
                 self.db.rollback()
                 return self.redirectToEditLink(error=e, **kwargs)
-
 
         return self.redirect("/." + kwargs.get("returnto", ""))
 
@@ -517,7 +515,8 @@ class Root:
 
     @cherrypy.expose
     def help(self):
-        return env.get_template("help.html").render()
+        link = self.db.query(Link).order_by(func.random()).first()
+        return env.get_template("help.html").render(link=link)
 
     @cherrypy.expose
     def _override_vars_(self, **kwargs):
