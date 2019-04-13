@@ -23,9 +23,8 @@ import configparser
 import cherrypy
 import jinja2
 import html
-from pprint import pprint
 
-from sqlalchemy import Column, Integer, String, DateTime, Table, ForeignKey, func
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, Table, ForeignKey, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import IntegrityError
@@ -238,7 +237,7 @@ class ListOfLinks(Base):
     __tablename__ = 'listoflinks'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=True)
-    mode = Column(String, nullable=False, default='freshest')
+    mode = Column(String, default='freshest')
     last_used = Column(DateTime)
     links = relationship('Link', back_populates="lists", secondary=association_table)
 
@@ -249,6 +248,7 @@ class Link(Base):
     url = Column(String, unique=True, nullable=False)
     title = Column(String)
     no_clicks = Column(Integer, default=0)
+    regex = Column(Boolean, default=False)
     last_used = Column(DateTime)
 
     # 1 to many
@@ -375,13 +375,18 @@ class Root:
                     # redirect to list if unknown mode
                     return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
 
+                if link.regex:
+                    url = link.url.replace('{*}', rest[0])
+                else:
+                    url = link.url
+
                 now = datetime.datetime.utcnow()
                 link.no_clicks += 1
                 link.last_used = now
                 LL.last_used = now
                 self.db.commit()
 
-                self.redirect(url=link.url)
+                self.redirect(url=url)
         else:
             return env.get_template('list.html').render(L=[], keyword=keyword, popularLinks=[])
 
@@ -447,7 +452,7 @@ class Root:
         LL = self.db.query(ListOfLinks).filter_by(name=keyword).first()
         if LL:
             if 'behavior' in kwargs:
-                LL.mode = kwargs['behavior']
+                LL.mode = kwargs.get('behavior', 'freshest')
 
         return self.redirect("/." + keyword)
 
@@ -470,17 +475,25 @@ class Root:
         url = ''.join(kwargs.get('url', '').split())
 
         if title and url:
-            otherlists = list(set(kwargs.get('otherlists', []).split()))
 
             link = self.db.query(Link).filter_by(id=kwargs.get('linkid', 0)).first()
             if not link:
                 link = Link()
 
+            if '{*}' in url:
+                link.regex = True
+
             link.title = title
             link.url = url
             link.lists.clear()
 
-            for l in otherlists.extend(kwargs.get('lists', [])):
+            otherlists = list(kwargs.get('otherlists', []).split())
+            otherlists.append(kwargs.get('lists', []))
+
+            for l in otherlists:
+                if link.regex:
+                    if l[-1] != '/':
+                        l += '/'
                 LL = self.db.query(ListOfLinks).filter_by(name=l).first()
 
                 if not LL:
