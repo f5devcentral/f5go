@@ -9,15 +9,6 @@ import go
 
 
 class GeneralTestCases(unittest.TestCase):
-    def test_deampify_url(self):
-        """
-        Verify that ampersands are turned from '&amp;' to '&'
-        :return:
-        """
-        input_string = 'https://www.example.com/webhp?sourceid=chrome-instant&amp;ion=1&amp;espv=2&amp;ie=UTF-8'
-        expected = 'https://www.example.com/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8'
-        self.assertEqual(expected, go.deampify(input_string))
-
     def test_prettyday_should_return_never(self):
         """
         Verify cases where the prettyday function should return the string 'never'
@@ -100,24 +91,6 @@ class GeneralTestCases(unittest.TestCase):
         timestamp = time.time() - (95 * 24 * 3600)
         self.assertEqual('3 months ago', go.prettytime(timestamp))
 
-    def test_makeList_should_return_list(self):
-        """
-        Verify that the makeList function returns a list of the items passed in using various data structures
-        :return:
-        """
-        _list = [1, 2, 3]
-        # Leave as an explicit set call to support python 2.6
-        _num_set = set([42, 35])
-        _string = 'foo'
-
-        self.assertTrue(isinstance(go.makeList(_list), list))
-        self.assertTrue(isinstance(go.makeList(_string), list))
-        self.assertTrue(isinstance(go.makeList(_num_set), list))
-
-        self.assertEqual(go.makeList(_list), _list)
-        self.assertNotEqual(go.makeList(_string), _string)
-        self.assertNotEqual(go.makeList(_num_set), _num_set)
-
     def test_escapekeyword_should_replace_singlequote(self):
         """
         %27 (as seen in expected) is the character used in web
@@ -126,21 +99,6 @@ class GeneralTestCases(unittest.TestCase):
         keyword = "\'test\'"
         expected = "%27test%27"
         self.assertEqual(expected, go.escapekeyword(keyword))
-
-    def test_canonicalUrl_should_return_none(self):
-        """
-        When None is passed in None should be returned
-        :return:
-        """
-        self.assertEqual(None, go.canonicalUrl(None))
-
-    def test_canonicalUrl_should_return_correct_url(self):
-        url = "https://www.google.com"
-        self.assertEqual(url, go.canonicalUrl(url))
-
-        # Validates that jinja2.utils.urlize works the way we expect
-        url = "(https://www.google.com....."
-        self.assertEqual("https://www.google.com", go.canonicalUrl(url))
 
     def test_sanitary_should_return_None(self):
         """

@@ -79,23 +79,6 @@ class InvalidKeyword(Error):
     pass
 
 
-def deampify(s):
-    """Replace '&amp;'' with '&'."""
-    return s.replace("&amp;", "&")
-
-
-def escapeascii(s):
-    return html.escape(s).encode("ascii", "xmlcharrefreplace")
-
-
-def randomLink(LL):
-    return random.choice([l for l in LL.links])
-
-
-def popularLink(LL):
-    return sorted(LL.links, key=lambda L: (-L.no_clicks))[0]
-
-
 def today():
     return datetime.date.today().toordinal()
 
@@ -141,31 +124,6 @@ def prettytime(t):
         return '%d months ago' % (dt / (30 * 24*3600))
 
 
-def makeList(s):
-    if isinstance(s, str):
-        return [s]
-    elif isinstance(s, list):
-        return s
-    else:
-        return list(s)
-
-
-def canonicalUrl(url):
-    if url:
-        m = re.search(r'href="(.*)"', jinja2.utils.urlize(url))
-        if m:
-            return m.group(1)
-
-    return url
-
-
-def getDictFromCookie(cookiename):
-    if cookiename not in cherrypy.request.cookie:
-        return {}
-
-    return dict(urllib.parse.parse_qsl(cherrypy.request.cookie[cookiename].value))
-
-
 sanechars = string.ascii_lowercase + string.digits + "-."
 
 
@@ -179,10 +137,6 @@ def sanitary(s):
         return None
 
     return s
-
-
-def byClicks(links):
-    return sorted(links, key=lambda L: (-L.recentClicks, -L.totalClicks))
 
 
 def getCurrentEditableUrl():
@@ -323,7 +277,7 @@ class Root:
         link.last_used = datetime.datetime.utcnow()
         self.db.commit()
 
-        return self.redirect(deampify(link.url))
+        return self.redirect(link.url)
 
     @cherrypy.expose
     def index(self, **kwargs):
@@ -366,9 +320,10 @@ class Root:
                 return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
             else:
                 if LL.mode == 'top':
-                    link = popularLink(LL)
+                    # TODO use a db call?
+                    link = sorted(LL.links, key=lambda L: (-L.no_clicks))[0]
                 elif LL.mode == 'random':
-                    link = randomLink(LL)
+                    link = random.choice([l for l in LL.links])
                 elif LL.mode == 'freshest':
                     link = LL.links[-1]
                 else:
@@ -485,15 +440,16 @@ class Root:
 
             link.title = title
             link.url = url
+
             link.lists.clear()
 
-            otherlists = list(kwargs.get('otherlists', []).split())
+            otherlists = list(set(kwargs.get('otherlists', []).split()))
             otherlists.append(kwargs.get('lists', []))
 
             for l in otherlists:
-                if link.regex:
-                    if l[-1] != '/':
-                        l += '/'
+                if link.regex and not l.endswith('/'):
+                    l += '/'
+
                 LL = self.db.query(ListOfLinks).filter_by(name=l).first()
 
                 if not LL:
@@ -596,6 +552,5 @@ if __name__ == "__main__":
     env.globals["len"] = len
     env.globals["min"] = min
     env.globals["str"] = str
-    env.globals["list"] = makeList
     env.globals.update(globals())
     main()
