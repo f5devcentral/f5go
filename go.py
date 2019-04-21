@@ -13,7 +13,6 @@ import base64
 import datetime
 import os
 import random
-import re
 import string
 import time
 import urllib.request
@@ -22,7 +21,6 @@ import urllib.parse
 import configparser
 import cherrypy
 import jinja2
-import html
 
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, Table, ForeignKey, func
 from sqlalchemy.orm import relationship
@@ -250,18 +248,6 @@ class Root:
                 fqurl += "?" + cherrypy.request.query_string
             raise cherrypy.HTTPRedirect(fqurl)
 
-    def redirectToEditLink(self, **kwargs):
-        if "linkid" in kwargs:
-            url = "/_edit_/%s" % kwargs["linkid"]
-            del kwargs["linkid"]
-        else:
-            url = "/_add_"
-
-        return self.redirect(url + "?" + urllib.parse.urlencode(kwargs))
-
-    def redirectToEditList(self, listname, **kwargs):
-        baseurl = "/_editlist_/%s?" % escapekeyword(listname)
-        return self.redirect(baseurl + urllib.parse.urlencode(kwargs))
 
     @cherrypy.expose
     def robots_txt(self):
@@ -278,7 +264,6 @@ class Root:
 
         link = self.db.query(Link).order_by(func.random()).first()
         link.no_clicks += 1
-        link.last_used = datetime.datetime.utcnow()
         self.db.commit()
 
         return self.redirect(link.url)
@@ -349,8 +334,7 @@ class Root:
 
     @cherrypy.expose
     def special(self):
-        LL = {}
-        LL['name'] = "Smart Keywords"
+        LL = {'name': 'Smart Keywords'}
 
         return env.get_template('list.html').render(L=LL, keyword="special")
 
@@ -467,7 +451,7 @@ class Root:
             except Exception:
                 self.db.rollback()
                 cherrypy.log("unable to commit to database", traceback=True)
-                return self.redirectToEditLink(**kwargs)
+                return self._edit_(link.id, **kwargs)
 
         return self.redirect("/." + kwargs.get("returnto", ""))
 
