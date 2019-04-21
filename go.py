@@ -192,7 +192,9 @@ class ListOfLinks(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=True)
     mode = Column(String, default='freshest')
-    last_used = Column(DateTime)
+    last_used = Column(DateTime, onupdate=func.now())
+    created_at = Column(DateTime, server_default=func.now())
+
     links = relationship('Link', back_populates="lists", secondary=association_table)
 
 
@@ -203,7 +205,8 @@ class Link(Base):
     title = Column(String)
     no_clicks = Column(Integer, default=0)
     regex = Column(Boolean, default=False)
-    last_used = Column(DateTime)
+    last_used = Column(DateTime, onupdate=func.now())
+    created_at = Column(DateTime, server_default=func.now())
 
     # 1 to many
 #    edits = relationship('Edit')
@@ -215,7 +218,8 @@ class Edit(Base):
     __tablename__ = 'edits'
     id = Column(Integer, primary_key=True)
     editor = Column(String)
-    timestamp = Column(DateTime)
+    last_used = Column(DateTime, onupdate=func.now())
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class Root:
@@ -320,11 +324,11 @@ class Root:
                 return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
             else:
                 if LL.mode == 'top':
-                    # TODO use a db call?
                     link = sorted(LL.links, key=lambda L: (-L.no_clicks))[0]
                 elif LL.mode == 'random':
                     link = random.choice([l for l in LL.links])
                 elif LL.mode == 'freshest':
+                    # TODO validate created date, not index in list
                     link = LL.links[-1]
                 else:
                     # redirect to list if unknown mode
@@ -335,10 +339,8 @@ class Root:
                 else:
                     url = link.url
 
-                now = datetime.datetime.utcnow()
                 link.no_clicks += 1
-                link.last_used = now
-                LL.last_used = now
+                LL.last_used = datetime.datetime.utcnow()
                 self.db.commit()
 
                 self.redirect(url=url)
@@ -418,7 +420,7 @@ class Root:
             self.db.query(Link).filter_by(id=_id).delete()
             self.db.commit()
         except IntegrityError:
-            print('Unable to delete Link with ID {}'.format(_id))
+            cherrypy.log('Unable to delete Link with ID {}'.format(_id))
 
         return self.redirect("/." + returnto)
 
@@ -462,9 +464,10 @@ class Root:
 
             try:
                 self.db.commit()
-            except IntegrityError as e:
+            except Exception:
                 self.db.rollback()
-                return self.redirectToEditLink(error=e, **kwargs)
+                cherrypy.log("unable to commit to database", traceback=True)
+                return self.redirectToEditLink(**kwargs)
 
         return self.redirect("/." + kwargs.get("returnto", ""))
 
@@ -500,9 +503,6 @@ class Root:
         return self.redirect("/variables")
 
 
-env = jinja2.Environment(loader=jinja2.FileSystemLoader("./html"))
-
-
 def main():
 
     cherrypy.tools.db = SQLAlchemyTool()
@@ -521,18 +521,17 @@ def main():
         s.subscribe()
 
     file_path = os.getcwd().replace("\\", "/")
-    conf = {'/images': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/images"},
-            '/css': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/css"},
+    conf = {'/css': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/css"},
             '/js': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/js"},
-            '/': {'tools.db.on': True}}
+            '/': {'tools.db.on': True,
+                  'tools.sessions.on': True}
+           }
+
     print("Cherrypy conf: %s" % conf)
 
     cherrypy.tree.mount(Root(), "/", config=conf)
 
     dbfile = os.path.join(file_path, 'f5go.db')
-    if not os.path.exists(dbfile):
-        open(dbfile, 'w+').close()
-
     sqlalchemy_plugin = SQLAlchemyPlugin(cherrypy.engine, Base, 'sqlite:///%s' % (dbfile), echo=True)
     sqlalchemy_plugin.subscribe()
     sqlalchemy_plugin.create()
