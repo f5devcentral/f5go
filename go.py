@@ -287,25 +287,26 @@ class Root:
         keyword = rest[0]
         rest = rest[1:]
 
-        forceListDisplay = False
+        show_list = False
 
-        if keyword[0] == ".":  # force list page instead of redirect
+        # force list page instead of redirect
+        if keyword[0] == ".":
             if keyword == ".me":
                 username = getSSOUsername()
                 self.redirect("." + username)
-            forceListDisplay = True
+            show_list = True
             keyword = keyword[1:]
 
         if rest:
             keyword += "/"
-        elif forceListDisplay and cherrypy.request.path_info[-1] == "/":
-            # allow go/keyword/ to redirect to go/keyword but go/.keyword/
-            #  to go to the keyword/ index
+        elif show_list and cherrypy.request.path_info[-1] == "/":
+            # allow go/keyword/ redirect to go/keyword
+            # but go/.keyword/ goes to the keyword/ index
             keyword += "/"
 
         LL = self.db.query(ListOfLinks).filter_by(name=keyword).first()
         if LL:
-            if forceListDisplay or LL.mode == 'list':
+            if show_list or LL.mode == 'list':
                 return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
             else:
                 if LL.mode == 'top':
