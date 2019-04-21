@@ -2,8 +2,7 @@
     <div class="pull-right">
       <a
     {% if link.edits %}
-      {% set lastEditTime, lastEditName = "PLACEHOLDER LINK EDIT" %}
-      title="edited {{ lastEditTime|time_t }} by {{ lastEditName }}"
+      title="edited {{ link.edits[-1].created_at }} by {{ link.edits[-1].editor }}"
     {% else %}
       title="edit"
     {% endif %}

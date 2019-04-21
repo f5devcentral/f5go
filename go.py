@@ -108,6 +108,9 @@ def prettyday(d):
 
 
 def prettytime(t):
+    if isinstance(t, (datetime.date, datetime.datetime)):
+        t = time.mktime(t.timetuple())
+
     if t < 100000:
         return 'never'
 
@@ -207,7 +210,7 @@ class Link(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     # 1 to many
-#    edits = relationship('Edit')
+    edits = relationship('Edit')
     # many to many
     lists = relationship('ListOfLinks', back_populates='links', secondary=association_table)
 
@@ -215,8 +218,8 @@ class Link(Base):
 class Edit(Base):
     __tablename__ = 'edits'
     id = Column(Integer, primary_key=True)
+    link_id = Column(Integer, ForeignKey('links.id'))
     editor = Column(String)
-    last_used = Column(DateTime, onupdate=func.now())
     created_at = Column(DateTime, server_default=func.now())
 
 
@@ -446,6 +449,11 @@ class Root:
                 self.db.add(LL)
 
             self.db.add(link)
+            self.db.flush()
+
+            edit = Edit(link_id=link.id,
+                        editor=getSSOUsername())
+            self.db.add(edit)
 
             try:
                 self.db.commit()
