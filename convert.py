@@ -108,14 +108,16 @@ def main():
     with open('godb.pickle', 'rb') as p:
         db = pickle.load(p)
         for l in db.lists.values():
-            try:
-                int(l._url)
-                logging.info('found list with redirect to id {}'.format(l._url))
-            except ValueError:
-                pass
 
-            redir_list = RedirectList(name=l.name,
-                                      redirect=l._url)
+            redir_list = RedirectList(name=l.name)
+            link_redir = False
+
+            try:
+                # redirect to individual link
+                int(l._url)
+                link_redir = True
+            except ValueError:
+                redir_list.redirect = l._url
 
             for li in l.links:
                 s = session.query(RedirectLink).filter_by(url=li._url).first()
@@ -137,6 +139,13 @@ def main():
                                     created_at=datetime.datetime.fromtimestamp(e[0]))
                         s.edits.append(edit)
 
+                session.add(s)
+                session.flush()
+
+                if link_redir and int(l._url) == li.linkid:
+                    logging.info('setting redirect for RedirectList to RedirectLink ID {}'.format(s.id))
+                    redir_list.redirect = s.id
+
                 redir_list.links.append(s)
 
             l_dates = sorted([datetime.date.fromordinal(d) for d in l.clickData.keys()], reverse=True)
@@ -146,7 +155,7 @@ def main():
             session.add(redir_list)
             try:
                 session.commit()
-                logging.info('added list {}'.format(l.name))
+                logging.info('added list {} with {} links'.format(l.name, len(redir_list.links)))
             except Exception as e:
                 logging.error('unable to add list {}'.format(l.name))
                 logging.error(e)

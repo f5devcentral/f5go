@@ -281,10 +281,11 @@ class Root:
                 elif LL.redirect == 'freshest':
                     # TODO validate created date, not index in list
                     link = LL.links[-1]
-                # elif by link_id
                 else:
-                    # redirect to list if unknown mode
-                    return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
+                    link = self.db.query(RedirectLink).filter_by(id=LL.redirect).first()
+                    if not link:
+                        # redirect to list if unknown mode
+                        return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
 
                 if link.regex:
                     url = link.url.replace('{*}', rest[0])
