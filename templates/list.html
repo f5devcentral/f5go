@@ -28,7 +28,7 @@
        <option value="top" {% if L.redirect == "top" %}selected{% endif %}>the most used link</option>
        <option value="random" {% if L.redirect == "random" %}selected{% endif %}>a random link</option>
        {% for link in popularLinks %}
-           <option value="{{ link.linkid }}" {% if L.redirect == str(link.linkid) %}selected{% endif %}>{{ link.title or link.redirect }}</option>
+           <option value="{{ link.id }}" {% if L.redirect == str(link.id) %}selected{% endif %}>{{ link.title or link.redirect }}</option>
        {% endfor %}
      </select>
      {% if username %}

@@ -358,8 +358,9 @@ class Root:
     def _setbehavior_(self, keyword, **kwargs):
         LL = self.db.query(RedirectList).filter_by(name=keyword).first()
         if LL:
-            if 'behavior' in kwargs:
-                LL.mode = kwargs.get('behavior', 'freshest')
+            LL.redirect = kwargs.get('behavior')
+            self.db.add(LL)
+            self.db.commit()
 
         return self.redirect("/." + keyword)
 
