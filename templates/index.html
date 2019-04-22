@@ -13,8 +13,8 @@
 
 <table class="table table-striped">
 <tr><td colspan="3"><h4 class="center"><a href="/special">Special Cases</a></h4></td></tr>
-{% for link in folderLinks[:15]: %}
-    {{ renderlink(folderLinks.index(link) + 1, link, username) }}
+{% for link in specials %}
+    {{ renderlink(specials.index(link) + 1, link, username) }}
 {% endfor %}
 </table>
 </div>

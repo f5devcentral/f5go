@@ -236,13 +236,14 @@ class Root:
     def index(self, **kwargs):
         self.redirectIfNotFullHostname()
 
-        topLinks = self.db.query(RedirectLink).order_by(RedirectLink.no_clicks.desc()).limit(8).all()
+        top = self.db.query(RedirectLink).order_by(RedirectLink.no_clicks.desc()).limit(8).all()
         filter_after = datetime.datetime.today() - datetime.timedelta(days = 30)
-        allLists = self.db.query(RedirectList).filter(RedirectList.last_used).order_by(RedirectList.last_used > filter_after).all()
+        lists = self.db.query(RedirectList).filter(RedirectList.last_used).order_by(RedirectList.last_used > filter_after).all()
+        specials = self.db.query(RedirectLink).filter_by(regex=True).limit(15).all()
         if 'keyword' in kwargs:
             return self.redirect("/" + kwargs['keyword'])
 
-        return env.get_template('index.html').render(folderLinks=[], topLinks=topLinks, allLists=allLists, now=today())
+        return env.get_template('index.html').render(specials=specials, topLinks=top, allLists=lists, now=today())
 
     @cherrypy.expose
     def default(self, *rest, **kwargs):
@@ -300,7 +301,7 @@ class Root:
 
     @cherrypy.expose
     def special(self):
-        LL = {'name': 'Smart Keywords'}
+        LL = self.db.query(RedirectLink).filter_by(regex=True).all()
 
         return env.get_template('list.html').render(L=LL, keyword="special")
 
@@ -326,7 +327,6 @@ class Root:
         return self.notfound("RedirectLink %s does not exist" % _id)
 
     @cherrypy.expose
-   # @cherrypy.tools.allow(methods=['GET','POST'])
     def _add_(self, *args, **kwargs):
         # _add_?ll=tag1
         _ll = kwargs.get('ll', '')
