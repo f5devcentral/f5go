@@ -26,7 +26,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from cp_sqlalchemy import SQLAlchemyTool, SQLAlchemyPlugin
 
-from models import Base, ListOfLinks, Link, Edit
+from models import Base, RedirectList, RedirectLink, Edit
 
 
 config = configparser.ConfigParser()
@@ -226,7 +226,7 @@ class Root:
     @cherrypy.expose
     def lucky(self):
 
-        link = self.db.query(Link).order_by(func.random()).first()
+        link = self.db.query(RedirectLink).order_by(func.random()).first()
         link.no_clicks += 1
         self.db.commit()
 
@@ -236,9 +236,9 @@ class Root:
     def index(self, **kwargs):
         self.redirectIfNotFullHostname()
 
-        topLinks = self.db.query(Link).order_by(Link.no_clicks.desc()).limit(8).all()
+        topLinks = self.db.query(RedirectLink).order_by(RedirectLink.no_clicks.desc()).limit(8).all()
         filter_after = datetime.datetime.today() - datetime.timedelta(days = 30)
-        allLists = self.db.query(ListOfLinks).filter(ListOfLinks.last_used).order_by(ListOfLinks.last_used > filter_after).all()
+        allLists = self.db.query(RedirectList).filter(RedirectList.last_used).order_by(RedirectList.last_used > filter_after).all()
         if 'keyword' in kwargs:
             return self.redirect("/" + kwargs['keyword'])
 
@@ -268,18 +268,19 @@ class Root:
             # but go/.keyword/ goes to the keyword/ index
             keyword += "/"
 
-        LL = self.db.query(ListOfLinks).filter_by(name=keyword).first()
+        LL = self.db.query(RedirectList).filter_by(name=keyword).first()
         if LL:
-            if show_list or LL.mode == 'list':
+            if show_list or LL.redirect == 'list':
                 return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
             else:
-                if LL.mode == 'top':
+                if LL.redirect == 'top':
                     link = sorted(LL.links, key=lambda L: (-L.no_clicks))[0]
-                elif LL.mode == 'random':
+                elif LL.redirect == 'random':
                     link = random.choice([l for l in LL.links])
-                elif LL.mode == 'freshest':
+                elif LL.redirect == 'freshest':
                     # TODO validate created date, not index in list
                     link = LL.links[-1]
+                # elif by link_id
                 else:
                     # redirect to list if unknown mode
                     return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
@@ -315,14 +316,14 @@ class Root:
 
     @cherrypy.expose
     def _link_(self, _id):
-        link = self.db.query(Link).filter_by(id=_id).first()
+        link = self.db.query(RedirectLink).filter_by(id=_id).first()
         if link:
             link.no_clicks += 1
             self.db.commit()
             return self.redirect(link.url, status=301)
 
         cherrypy.response.status = 404
-        return self.notfound("Link %s does not exist" % _id)
+        return self.notfound("RedirectLink %s does not exist" % _id)
 
     @cherrypy.expose
    # @cherrypy.tools.allow(methods=['GET','POST'])
@@ -330,7 +331,7 @@ class Root:
         # _add_?ll=tag1
         _ll = kwargs.get('ll', '')
 
-        LL = self.db.query(ListOfLinks).filter_by(name=_ll).all()
+        LL = self.db.query(RedirectList).filter_by(name=_ll).all()
         if LL:
             return env.get_template("editlink.html").render(L=[], lists=[l.__dict__ for l in LL], returnto=_ll, **kwargs)
 
@@ -339,7 +340,7 @@ class Root:
 
     @cherrypy.expose
     def _edit_(self, _id, **kwargs):
-        link = self.db.query(Link).filter_by(id=_id).first()
+        link = self.db.query(RedirectLink).filter_by(id=_id).first()
 
         if link:
             return env.get_template("editlink.html").render(L=link, lists=link.lists, **kwargs)
@@ -350,12 +351,12 @@ class Root:
 
     @cherrypy.expose
     def _editlist_(self, keyword, **kwargs):
-        LL = self.db.query(ListOfLinks).filter_by(name=keyword).first()
+        LL = self.db.query(RedirectList).filter_by(name=keyword).first()
         return env.get_template("list.html").render(L=LL, keyword=keyword)
 
     @cherrypy.expose
     def _setbehavior_(self, keyword, **kwargs):
-        LL = self.db.query(ListOfLinks).filter_by(name=keyword).first()
+        LL = self.db.query(RedirectList).filter_by(name=keyword).first()
         if LL:
             if 'behavior' in kwargs:
                 LL.mode = kwargs.get('behavior', 'freshest')
@@ -366,10 +367,10 @@ class Root:
     def _delete_(self, _id, returnto=""):
 
         try:
-            self.db.query(Link).filter_by(id=_id).delete()
+            self.db.query(RedirectLink).filter_by(id=_id).delete()
             self.db.commit()
         except IntegrityError:
-            cherrypy.log('Unable to delete Link with ID {}'.format(_id))
+            cherrypy.log('Unable to delete RedirectLink with ID {}'.format(_id))
 
         return self.redirect("/." + returnto)
 
@@ -382,9 +383,9 @@ class Root:
 
         if title and url:
 
-            link = self.db.query(Link).filter_by(id=kwargs.get('linkid', 0)).first()
+            link = self.db.query(RedirectLink).filter_by(id=kwargs.get('linkid', 0)).first()
             if not link:
-                link = Link()
+                link = RedirectLink()
 
             if '{*}' in url:
                 link.regex = True
@@ -401,10 +402,10 @@ class Root:
                 if link.regex and not l.endswith('/'):
                     l += '/'
 
-                LL = self.db.query(ListOfLinks).filter_by(name=l).first()
+                LL = self.db.query(RedirectList).filter_by(name=l).first()
 
                 if not LL:
-                    LL = ListOfLinks(name=l)
+                    LL = RedirectList(name=l)
 
                 LL.links.append(link)
                 self.db.add(LL)
@@ -432,7 +433,7 @@ class Root:
 
     @cherrypy.expose
     def toplinks(self, n=100):
-        topLinks = self.db.query(Link).order_by(Link.no_clicks.desc())[:n]
+        topLinks = self.db.query(RedirectLink).order_by(RedirectLink.no_clicks.desc())[:n]
         return env.get_template("toplinks.html").render(topLinks=topLinks, n=n)
 
     @cherrypy.expose
@@ -441,7 +442,7 @@ class Root:
 
     @cherrypy.expose
     def help(self):
-        link = self.db.query(Link).order_by(func.random()).first()
+        link = self.db.query(RedirectLink).order_by(func.random()).first()
         return env.get_template("help.html").render(link=link)
 
     @cherrypy.expose

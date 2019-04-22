@@ -23,12 +23,12 @@
     <input type="hidden" name="keyword" value="{{ keyword }}"/>
     <b><a href="/{{ keyword|escapekeyword }}">go/{{ keyword }}</a></b> redirects to
     <select name="behavior" {% if not username %}disabled="true"{% endif %}>
-       <option value="list" {% if L.mode == "list" %}selected{% endif %}>this list of links</option>
-       <option value="freshest" {% if L.mode == "freshest" %}selected{% endif %}>the freshest link</option>
-       <option value="top" {% if L.mode == "top" %}selected{% endif %}>the most used link</option>
-       <option value="random" {% if L.mode == "random" %}selected{% endif %}>a random link</option>
+       <option value="list" {% if L.redirect == "list" %}selected{% endif %}>this list of links</option>
+       <option value="freshest" {% if L.redirect == "freshest" %}selected{% endif %}>the freshest link</option>
+       <option value="top" {% if L.redirect == "top" %}selected{% endif %}>the most used link</option>
+       <option value="random" {% if L.redirect == "random" %}selected{% endif %}>a random link</option>
        {% for link in popularLinks %}
-           <option value="{{ link.linkid }}" {% if L.mode == str(link.linkid) %}selected{% endif %}>{{ link.title or link.mode }}</option>
+           <option value="{{ link.linkid }}" {% if L.redirect == str(link.linkid) %}selected{% endif %}>{{ link.title or link.redirect }}</option>
        {% endfor %}
      </select>
      {% if username %}
