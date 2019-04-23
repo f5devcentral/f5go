@@ -24,19 +24,19 @@ class Clickable:
     def __getattr__(self, attrname):
         if attrname == "totalClicks":
             return self.archivedClicks + sum(self.clickData.values())
-        elif attrname == "recentClicks":
+        if attrname == "recentClicks":
             return sum(self.clickData.values())
-        elif attrname == "lastClickTime":
+        if attrname == "lastClickTime":
             if not self.clickData:
                 return 0
             maxk = max(self.clickData.keys())
             return time.mktime(datetime.date.fromordinal(maxk).timetuple())
-        elif attrname == "lastClickDay":
+        if attrname == "lastClickDay":
             if not self.clickData:
                 return 0
             return max(self.clickData.keys())
-        else:
-            raise AttributeError(attrname)
+
+        raise AttributeError(attrname)
 
 
 class Link(Clickable):
@@ -44,7 +44,7 @@ class Link(Clickable):
         Clickable.__init__(self)
 
         self.linkid = linkid
-        self._url = canonicalUrl(url)
+        self._url = url
         self.title = title
 
         self.edits = []    # (edittime, editorname); [-1] is most recent
@@ -143,7 +143,7 @@ def main():
                 session.flush()
 
                 if link_redir and int(l._url) == li.linkid:
-                    logging.info('setting redirect for RedirectList to RedirectLink ID {}'.format(s.id))
+                    logging.info('setting redirect for RedirectList to RedirectLink ID %s', s.id)
                     redir_list.redirect = s.id
 
                 redir_list.links.append(s)
@@ -155,10 +155,10 @@ def main():
             session.add(redir_list)
             try:
                 session.commit()
-                logging.info('added list {} with {} links'.format(l.name, len(redir_list.links)))
-            except Exception as e:
-                logging.error('unable to add list {}'.format(l.name))
-                logging.error(e)
+                logging.info('added list %s with %s links', l.name, len(redir_list.links))
+            except Exception as err:
+                logging.error('unable to add list %s', l.name)
+                logging.error(err)
 
 
 if __name__ == '__main__':

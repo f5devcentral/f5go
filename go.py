@@ -176,7 +176,7 @@ def getSSOUsername(redirect=True):
         raise cherrypy.HTTPRedirect(cfg_urlSSO + urllib.parse.quote(redirect, safe=":/"))
 
     sso = urllib.parse.unquote(cherrypy.request.cookie["issosession"].value)
-    session = list(map(base64.b64decode, string.split(sso, "-")))
+    session = list(map(base64.b64decode, sso.split("-")))
     return session[0]
 
 
@@ -237,7 +237,7 @@ class Root:
         self.redirectIfNotFullHostname()
 
         top = self.db.query(RedirectLink).order_by(RedirectLink.no_clicks.desc()).limit(8).all()
-        filter_after = datetime.datetime.today() - datetime.timedelta(days = 30)
+        filter_after = datetime.datetime.today() - datetime.timedelta(days=30)
         lists = self.db.query(RedirectList).filter(RedirectList.last_used).order_by(RedirectList.last_used > filter_after).all()
         specials = self.db.query(RedirectLink).filter_by(regex=True).limit(15).all()
         if 'keyword' in kwargs:
@@ -246,7 +246,7 @@ class Root:
         return env.get_template('index.html').render(specials=specials, topLinks=top, allLists=lists, now=today())
 
     @cherrypy.expose
-    def default(self, *rest, **kwargs):
+    def default(self, *rest):
         self.redirectIfNotFullHostname()
 
         keyword = rest[0]
@@ -271,40 +271,41 @@ class Root:
 
         LL = self.db.query(RedirectList).filter_by(name=keyword).first()
         if LL:
+
             if show_list or LL.redirect == 'list':
                 return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
+
+            if LL.redirect == 'top':
+                link = sorted(LL.links, key=lambda L: (-L.no_clicks))[0]
+            elif LL.redirect == 'random':
+                link = random.choice([l for l in LL.links])
+            elif LL.redirect == 'freshest':
+                # TODO validate created date, not index in list
+                link = LL.links[-1]
             else:
-                if LL.redirect == 'top':
-                    link = sorted(LL.links, key=lambda L: (-L.no_clicks))[0]
-                elif LL.redirect == 'random':
-                    link = random.choice([l for l in LL.links])
-                elif LL.redirect == 'freshest':
-                    # TODO validate created date, not index in list
-                    link = LL.links[-1]
-                else:
-                    link = self.db.query(RedirectLink).filter_by(id=LL.redirect).first()
-                    if not link:
-                        # redirect to list if unknown mode
-                        return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
+                link = self.db.query(RedirectLink).filter_by(id=LL.redirect).first()
+                if not link:
+                    # redirect to list if unknown mode
+                    return env.get_template('list.html').render(L=LL, keyword=keyword, popularLinks=LL.links)
 
-                if link.regex:
-                    url = link.url.replace('{*}', rest[0])
-                else:
-                    url = link.url
+            if link.regex:
+                url = link.url.replace('{*}', rest[0])
+            else:
+                url = link.url
 
-                link.no_clicks += 1
-                LL.last_used = datetime.datetime.utcnow()
-                self.db.commit()
+            link.no_clicks += 1
+            LL.last_used = datetime.datetime.utcnow()
+            self.db.commit()
 
-                self.redirect(url=url)
-        else:
-            return env.get_template('list.html').render(L=[], keyword=keyword, popularLinks=[])
+            self.redirect(url=url)
+
+        return env.get_template('list.html').render(L=[], keyword=keyword, popularLinks=[])
 
     @cherrypy.expose
     def special(self):
         LL = self.db.query(RedirectLink).filter_by(regex=True).all()
 
-        return env.get_template('list.html').render(L=LL, keyword="special")
+        return env.get_template('list.html').render(L=LL, keyword="special", popularLinks=LL)
 
     @cherrypy.expose
     def _login_(self, redirect=""):
@@ -336,8 +337,7 @@ class Root:
         if LL:
             return env.get_template("editlink.html").render(L=[], lists=[l.__dict__ for l in LL], returnto=_ll, **kwargs)
 
-        else:
-            return env.get_template("editlink.html").render(L=[], lists=[{'name': _ll}], returnto=_ll, **kwargs)
+        return env.get_template("editlink.html").render(L=[], lists=[{'name': _ll}], returnto=_ll, **kwargs)
 
     @cherrypy.expose
     def _edit_(self, _id, **kwargs):
@@ -351,7 +351,7 @@ class Root:
         return env.get_template("editlink.html").render(L=[], **kwargs)
 
     @cherrypy.expose
-    def _editlist_(self, keyword, **kwargs):
+    def _editlist_(self, keyword):
         LL = self.db.query(RedirectList).filter_by(name=keyword).first()
         return env.get_template("list.html").render(L=LL, keyword=keyword)
 
@@ -435,7 +435,7 @@ class Root:
 
     @cherrypy.expose
     def toplinks(self, n=100):
-        topLinks = self.db.query(RedirectLink).order_by(RedirectLink.no_clicks.desc())[:n]
+        topLinks = self.db.query(RedirectLink).order_by(RedirectLink.no_clicks.desc()).limit(n).all()
         return env.get_template("toplinks.html").render(topLinks=topLinks, n=n)
 
     @cherrypy.expose
@@ -455,7 +455,7 @@ class Root:
         return self.redirect("variables")
 
     @cherrypy.expose
-    def _set_variable_(self, varname="", value=""):
+    def _set_variable_(self):
 
         return self.redirect("/variables")
 
