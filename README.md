@@ -1,7 +1,7 @@
 
 # The F5 Go Redirector
 
-[![Build Status](https://travis-ci.org/f5devcentral/f5go.svg?branch=master)](https://travis-ci.org/f5devcentral/f5go)
+[![Build Status](https://travis-ci.org/layertwo/f5go.svg?branch=master)](https://travis-ci.org/f5devcentral/f5go)
 
 *A simple service for redirecting mnemonic terms to destination urls.*
 
@@ -15,18 +15,17 @@ Features include:
 
 ## Required Packages
 
-python-cherrypy3
-python-jinja2
+```
+jinaj2
+cherrypy
+CherryPy-SQLAlchemy
+psycopg2-binary
+```
 
 ## Tips
 
 To run, execute go.py and go to localhost:8080 in a browser.
 
-backup go database regularly
-
-        $ ./go.py export
-        $ backup newterms.txt
-
 ---
-contributed by Saul Pwanson
+contributed by Saul Pwanson, Lucas Messenger
 
