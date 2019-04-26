@@ -2,3 +2,5 @@ jinja2==2.10.1
 cherrypy==18.1.1
 CherryPy-SQLAlchemy
 nose
+psycopg2-binary
+tornado

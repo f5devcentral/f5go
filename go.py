@@ -9,7 +9,6 @@ common phone numbers, and just about everyone needs a way around bookmarks.
 __author__ = "Saul Pwanson <saul@pwanson.com>"
 __credits__ = "Bill Booth, Bryce Bockman, treebird, Sean Smith, layertwo"
 
-import base64
 import datetime
 import os
 import random
@@ -18,7 +17,6 @@ import time
 import urllib.request
 import urllib.error
 import urllib.parse
-import configparser
 import cherrypy
 import jinja2
 
@@ -26,52 +24,10 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from cp_sqlalchemy import SQLAlchemyTool, SQLAlchemyPlugin
 
+from config import get_config
 from models import Base, RedirectList, RedirectLink, Edit
 
-
-config = configparser.ConfigParser()
-config.read('go.cfg')
-
-cfg_fnDatabase = config.get('goconfig', 'cfg_fnDatabase')
-cfg_urlFavicon = config.get('goconfig', 'cfg_urlFavicon')
-cfg_hostname = config.get('goconfig', 'cfg_hostname')
-cfg_port = config.getint('goconfig', 'cfg_port')
-cfg_urlSSO = config.get('goconfig', 'cfg_urlSSO')
-cfg_urlEditBase = "https://" + cfg_hostname
-cfg_sslEnabled = False # default to False
-try:
-    cfg_sslEnabled = config.getboolean('goconfig', 'cfg_sslEnabled')
-except:
-    # just preventing from crashing if the cfg option doesn't exist since technically it's optional
-    pass
-cfg_sslCertificate = config.get('goconfig', 'cfg_sslCertificate')
-cfg_sslPrivateKey = config.get('goconfig', 'cfg_sslPrivateKey')
-cfg_contactEmail = config.get('goconfig', 'cfg_contactEmail')
-cfg_contactName = config.get('goconfig', 'cfg_contactName')
-cfg_customDocs = config.get('goconfig', 'cfg_customDocs')
-
-class MyGlobals(object):
-    def __init__(self):
-        self.db_hnd = None
-
-    def __repr__(self):
-        return '%s(hnd=%s)' % (self.__class__.__name__, self.db_hnd)
-
-
-    def set_handle(self, hnd):
-        self.db_hnd = hnd
-
-MYGLOBALS = MyGlobals()
-
-
-class Error(Exception):
-    """base error exception class for go, never raised"""
-    pass
-
-
-class InvalidKeyword(Error):
-    """Error raised when a keyword fails the sanity check"""
-    pass
+env = jinja2.Environment(loader=jinja2.FileSystemLoader("./templates/"))
 
 
 def today():
@@ -96,12 +52,14 @@ def prettyday(d):
     s = today() - d
     if s < 1:
         return 'today'
-    elif s < 2:
+
+    if s < 2:
         return 'yesterday'
-    elif s < 60:
+
+    if s < 60:
         return '%d days ago' % s
-    else:
-        return '%d months ago' % (s / 30)
+
+    return '%d months ago' % (s / 30)
 
 
 def prettytime(t):
@@ -114,12 +72,14 @@ def prettytime(t):
     dt = time.time() - t
     if dt < 24*3600:
         return 'today'
-    elif dt < 2 * 24*3600:
+
+    if dt < 2 * 24*3600:
         return 'yesterday'
-    elif dt < 60 * 24*3600:
+
+    if dt < 60 * 24*3600:
         return '%d days ago' % (dt / (24 * 3600))
-    else:
-        return '%d months ago' % (dt / (30 * 24*3600))
+
+    return '%d months ago' % (dt / (30 * 24*3600))
 
 
 sanechars = string.ascii_lowercase + string.digits + "-."
@@ -138,7 +98,7 @@ def sanitary(s):
 
 
 def getCurrentEditableUrl():
-    redurl = cfg_urlEditBase + cherrypy.request.path_info
+    redurl = cherrypy.request.path_info
     if cherrypy.request.query_string:
         redurl += "?" + cherrypy.request.query_string
 
@@ -156,32 +116,28 @@ def getSSOUsername(redirect=True):
     :param redirect:
     :return: the SSO username
     """
-    if cfg_urlSSO is None or cfg_urlSSO == 'None':
-        return 'testuser'
+   # if cfg_urlSSO is None or cfg_urlSSO == 'None':
+    return 'testuser'
 
-    if cherrypy.request.base != cfg_urlEditBase:
-        if not redirect:
-            return None
-        if redirect is True:
-            redirect = getCurrentEditableUrl()
-        elif redirect is False:
-            raise cherrypy.HTTPRedirect(redirect)
+   # if cherrypy.request.base != cfg_urlEditBase:
+   #     if not redirect:
+   #         return None
+   #     if redirect is True:
+   #         redirect = getCurrentEditableUrl()
+   #     elif redirect is False:
+   #         raise cherrypy.HTTPRedirect(redirect)
 
-    if "issosession" not in cherrypy.request.cookie:
-        if not redirect:
-            return None
-        if redirect is True:
-            redirect = cherrypy.url(qs=cherrypy.request.query_string)
+   # if "issosession" not in cherrypy.request.cookie:
+   #     if not redirect:
+   #         return None
+   #     if redirect is True:
+   #         redirect = cherrypy.url(qs=cherrypy.request.query_string)
 
-        raise cherrypy.HTTPRedirect(cfg_urlSSO + urllib.parse.quote(redirect, safe=":/"))
+   #     raise cherrypy.HTTPRedirect(cfg_urlSSO + urllib.parse.quote(redirect, safe=":/"))
 
-    sso = urllib.parse.unquote(cherrypy.request.cookie["issosession"].value)
-    session = list(map(base64.b64decode, sso.split("-")))
-    return session[0]
-
-
-
-
+   # sso = urllib.parse.unquote(cherrypy.request.cookie["issosession"].value)
+   # session = list(map(base64.b64decode, sso.split("-")))
+   # return session[0]
 
 
 class Root:
@@ -197,31 +153,12 @@ class Root:
     def undirect(self):
         raise cherrypy.HTTPRedirect(cherrypy.request.headers.get("Referer", "/"))
 
-    def notfound(self, msg):
-        return env.get_template("notfound.html").render(message=msg)
-
-    def redirectIfNotFullHostname(self, scheme=None):
-        if scheme is None:
-            scheme = cherrypy.request.scheme
-
-        # redirect to our full hostname to get the user's cookies
-        if cherrypy.request.scheme != scheme or cherrypy.request.base.find(cfg_hostname) < 0:
-            fqurl = scheme + "://" + cfg_hostname
-            fqurl += cherrypy.request.path_info
-            if cherrypy.request.query_string:
-                fqurl += "?" + cherrypy.request.query_string
-            raise cherrypy.HTTPRedirect(fqurl)
-
-
     @cherrypy.expose
     def robots_txt(self):
         # Specifically for the internal GSA
-        return open("robots.txt").read()
-
-    @cherrypy.expose
-    def favicon_ico(self):
-        cherrypy.response.headers["Cache-control"] = "max-age=172800"
-        return self.redirect(cfg_urlFavicon, status=301)
+        if os.path.exists('robots.txt'):
+            return open("robots.txt").read()
+        return ''
 
     @cherrypy.expose
     def lucky(self):
@@ -234,20 +171,19 @@ class Root:
 
     @cherrypy.expose
     def index(self, **kwargs):
-        self.redirectIfNotFullHostname()
 
-        top = self.db.query(RedirectLink).order_by(RedirectLink.no_clicks.desc()).limit(8).all()
-        filter_after = datetime.datetime.today() - datetime.timedelta(days=30)
-        lists = self.db.query(RedirectList).filter(RedirectList.last_used).order_by(RedirectList.last_used > filter_after).all()
-        specials = self.db.query(RedirectLink).filter_by(regex=True).limit(15).all()
         if 'keyword' in kwargs:
             return self.redirect("/" + kwargs['keyword'])
+
+        top = self.db.query(RedirectLink).order_by(RedirectLink.no_clicks.desc()).limit(8).all()
+        filter_after = datetime.datetime.utcnow() - datetime.timedelta(days=30)
+        lists = self.db.query(RedirectList).filter(RedirectList.last_used > filter_after).order_by(RedirectList.last_used).all()
+        specials = self.db.query(RedirectLink).filter_by(regex=True).limit(15).all()
 
         return env.get_template('index.html').render(specials=specials, topLinks=top, allLists=lists, now=today())
 
     @cherrypy.expose
-    def default(self, *rest):
-        self.redirectIfNotFullHostname()
+    def default(self, *rest, **kwargs):
 
         keyword = rest[0]
         rest = rest[1:]
@@ -317,16 +253,6 @@ class Root:
     def me(self):
         return self.redirect(getSSOUsername())
 
-    @cherrypy.expose
-    def _link_(self, _id):
-        link = self.db.query(RedirectLink).filter_by(id=_id).first()
-        if link:
-            link.no_clicks += 1
-            self.db.commit()
-            return self.redirect(link.url, status=301)
-
-        cherrypy.response.status = 404
-        return self.notfound("RedirectLink %s does not exist" % _id)
 
     @cherrypy.expose
     def _add_(self, *args, **kwargs):
@@ -385,9 +311,10 @@ class Root:
 
         if title and url:
 
-            link = self.db.query(RedirectLink).filter_by(id=kwargs.get('linkid', 0)).first()
-            if not link:
-                link = RedirectLink()
+            link = RedirectLink()
+
+            if kwargs.get('linkid', ''):
+                link = self.db.query(RedirectLink).filter_by(id=kwargs['linkid']).first()
 
             if '{*}' in url:
                 link.regex = True
@@ -462,43 +389,8 @@ class Root:
 
 def main():
 
-    cherrypy.tools.db = SQLAlchemyTool()
+    config = get_config()
 
-    cherrypy.config.update({'server.socket_host': '::',
-                            'server.socket_port': cfg_port,
-                            'request.query_string_encoding': "latin1",
-                            })
-
-    cherrypy.https = s = cherrypy._cpserver.Server()
-    if cfg_sslEnabled:
-        s.socket_host = '::'
-        s.socket_port = 443
-        s.ssl_certificate = cfg_sslCertificate
-        s.ssl_private_key = cfg_sslPrivateKey
-        s.subscribe()
-
-    file_path = os.getcwd().replace("\\", "/")
-    conf = {'/css': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/static/css"},
-            '/js': {"tools.staticdir.on": True, "tools.staticdir.dir": file_path + "/static/js"},
-            '/': {'tools.db.on': True,
-                  'tools.sessions.on': True}
-           }
-
-    print("Cherrypy conf: %s" % conf)
-
-    cherrypy.tree.mount(Root(), "/", config=conf)
-
-    dbfile = os.path.join(file_path, 'f5go.db')
-    sqlalchemy_plugin = SQLAlchemyPlugin(cherrypy.engine, Base, 'sqlite:///%s' % (dbfile), echo=True)
-    sqlalchemy_plugin.subscribe()
-    sqlalchemy_plugin.create()
-    cherrypy.engine.start()
-    cherrypy.engine.block()
-
-
-if __name__ == "__main__":
-
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader("./templates/"))
     env.filters['time_t'] = prettytime
     env.filters['int'] = int
     env.filters['escapekeyword'] = escapekeyword
@@ -509,4 +401,37 @@ if __name__ == "__main__":
     env.globals["min"] = min
     env.globals["str"] = str
     env.globals.update(globals())
+
+    #if config.get('cfg_sslEnabled', False):
+    #    server.socket_host = '0.0.0.0'
+    #    server.socket_port = 443
+    #    server.ssl_certificate = config.get('cfg_sslCertificate', '')
+    #    server.ssl_private_key = config.get('cfg_sslPrivateKey', '')
+    cherrypy.request.query_string_encoding = 'latin1'
+
+    file_path = os.getcwd().replace("\\", "/")
+    conf = {'/favicon.ico': {'tools.staticfile.on': True,
+                             'tools.staticfile.filename': file_path + '/static/favicon.ico'},
+            '/css': {'tools.staticdir.on': True,
+                     'tools.staticdir.dir': file_path + '/static/css'},
+            '/js': {'tools.staticdir.on': True,
+                    'tools.staticdir.dir': file_path + '/static/js'},
+            '/': {'tools.db.on': True,
+                  'tools.sessions.on': True}
+           }
+
+    print("Cherrypy conf: %s" % conf)
+
+    cherrypy.tree.mount(Root(), "/", config=conf)
+
+    cherrypy.tools.db = SQLAlchemyTool()
+    dbpath = os.environ.get('GO_DATABASE') or config.get('cfg_fnDatabase', 'sqlite:///f5go.db')
+    sqlalchemy_plugin = SQLAlchemyPlugin(cherrypy.engine, Base, dbpath, echo=True)
+    sqlalchemy_plugin.subscribe()
+    sqlalchemy_plugin.create()
+    cherrypy.engine.start()
+    cherrypy.engine.block()
+
+
+if __name__ == "__main__":
     main()

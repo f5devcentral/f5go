@@ -4,6 +4,7 @@ import pickle
 import datetime
 import time
 import logging
+import os
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -99,7 +100,7 @@ class LinkDatabase:
                                                                          self.linksByUrl)
 
 def main():
-    engine = create_engine('sqlite:///f5go.db')
+    engine = create_engine(os.environ.get('GO_DATABASE', 'sqlite:///f5go.db'))
     Base.metadata.create_all(engine)
     session = scoped_session(sessionmaker(bind=engine))
 
