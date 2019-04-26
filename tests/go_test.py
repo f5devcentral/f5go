@@ -129,11 +129,10 @@ class GeneralTestCases(unittest.TestCase):
         self.assertEqual("testuser", go.getSSOUsername())
 
 
-# class LinkTestCases(unittest.TestCase):
-#     def test_create_link(self):
-#         link = go.Link(url='www.example.com', title='example site')
-#         self.assertEqual(0, link.linkid)
-#         self.assertEqual('example site', link.title)
+class LinkTestCases(unittest.TestCase):
+     def test_create_link(self):
+         link = go.RedirectLink(url='www.example.com', title='example site')
+         self.assertEqual('example site', link.title)
 #
 #     def test_edit_link(self):
 #         """
@@ -149,30 +148,27 @@ class GeneralTestCases(unittest.TestCase):
 #         (_, last_edit_name) = link.lastEdit()
 #         self.assertEqual('testuser', last_edit_name)
 #
-#     def test_opacity_never_clicked(self):
-#         """
-#         By default the opacity is 0.2
-#         :return:
-#         """
-#         link = go.Link(url='example.com', title='example site')
-#         today = datetime.date.today()
-#         date = datetime.date.toordinal(today)
-#         self.assertEqual('0.20', link.opacity(date))
-#
-#     def test_opacity_clicked_today(self):
-#         """
-#         By default the opacity is 0.2, by "clicking" today it's set to 1.0
-#         :return:
-#         """
-#         link = go.Link(url='example.com', title='example site')
-#         today = datetime.date.today()
-#         date = datetime.date.toordinal(today)
-#         link.clicked()
-#         self.assertEqual('1.00', link.opacity(date))
-#
-#     def test_usage_not_exists(self):
-#         link = go.Link(url='example.com', title='example site')
-#         self.assertEqual('', link.usage())
+     def test_opacity_never_clicked(self):
+         """
+         By default the opacity is 0.2
+         :return:
+         """
+         link = go.RedirectLink(url='https://www.example.com',
+                                title='example site',
+                                last_used=datetime.datetime(1970,1,1))
+         self.assertEqual('0.20', go.opacity(link))
+
+     def test_opacity_clicked_today(self):
+         """
+         By default the opacity is 0.2, by "clicking" today it's set to 1.0
+         :return:
+         """
+         link = go.RedirectLink(url='https://www.example.com',
+                                title='example site',
+                                last_used=datetime.datetime.utcnow())
+
+         self.assertEqual('1.00', go.opacity(link))
+
 
 if __name__ == '__main__':
     unittest.main()
