@@ -26,15 +26,6 @@
     </tr>
 
 
-    {% for k, v in g_db.variables.items() %}
-    <tr>
-      <td><code>{{ "{" ~ k ~ "}" }}</code></td>
-      <td><code>{{ v }}</code></td>
-      <td>
-        <input type="text" alt="value" size="16" name="{{ k }}" value="{{ getDictFromCookie("variables").get(k, "") }}"/>
-      </td>
-    </tr>
-    {% endfor %}
     </tbody>
   </table>
 </form>

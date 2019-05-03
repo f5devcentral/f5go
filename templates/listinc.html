@@ -1,0 +1,54 @@
+{% macro editlink(link, username) -%}
+    <div class="pull-right">
+      <a
+    {% if link.edits %}
+      title="edited {{ link.edits[-1].created_at }} by {{ link.edits[-1].editor }}"
+    {% else %}
+      title="edit"
+    {% endif %}
+    href="/_edit_/{{ link.id }}?returnto={{ keyword }}"><span class="glyphicon glyphicon-edit"></span></a>
+    </div>
+{%- endmacro %}
+
+{% macro clickstats(L) -%}
+{% if L.clicks %}
+<div style="padding-top: 1em; clear: both;">
+    <p>{{ L.clickinfo() }}</p>
+</div>
+{% endif %}
+{%- endmacro %}
+
+{% macro renderlink(idx, link, username, usage='') -%}
+<tr>
+<td>
+<b>
+ <a title="PLACEHOLDER" class="pull-left fineprint" style="width: 1em;">#{% if idx > 0 %}{{ idx }}{% else %}&nbsp;{% endif %}</a>
+ </b>
+ <div class="row link" id="{{ link.id }}">
+  <div class="shallow">
+
+    <a title="{{ link.url }}" href="{{ link.url }}">
+      <div class="shallow example col-md-4">
+       {% if usage != "" %}
+         <b>go/{{ usage }}</b>
+       {% else %}
+         &nbsp;
+       {% endif %}
+      </div>
+
+      <div class="shallow col-md-8">{{ link.title or link.url|truncate(80, True) }}</div>
+    </a>
+  </div>
+    <div class="fineprint shallow meta text">
+      {% for K in link.lists if K.name: %}
+      <a href="/.{{ K.name|escapekeyword }}" title="PLACEHOLDER K clickinfo"></a>
+      {% endfor %}
+    </div>
+
+
+</div>
+</td>
+  <td>{{ editlink(link, username) }}</td>
+</tr>
+{%- endmacro %}
+

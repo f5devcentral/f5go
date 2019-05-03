@@ -3,8 +3,8 @@
 
 <!-- {% set username = getSSOUsername() %} -->
 
-{% block title %}{% if L.linkid == 0 %}Add Link{% else %}Edit go link #{{ L.linkid }}{% endif %}{% endblock title %}
-{% block keyword %}{% if L.linkid %}_edit_/{{ L.linkid }}{% else %}_add_{% endif %}{% endblock keyword %}
+{% block title %}{% if L.id == 0 %}Add Link{% else %}Edit go link #{{ L.id }}{% endif %}{% endblock title %}
+{% block keyword %}{% if L.id %}_edit_/{{ L.id }}{% else %}_add_{% endif %}{% endblock keyword %}
 
 {% block body %}
 <div class="row">
@@ -12,8 +12,10 @@
 <div class="col-md-6">
 <div class="panel panel-default">
 
-  {% if L.linkid != 0 %}
-  <a class="pull-right" id="delete" style="margin-right: .25em;" href="/_delete_/{{ L.linkid }}?returnto={{ returnto }}"><span class="glyphicon glyphicon-trash"></span></a>
+  {% if L.id != 0 %}
+  <form action="/_delete_/{{ L.id }}?returnto={{ returnto }}" method="POST">
+    <button type="submit" class="pull-right" id="delete" style="margin-right: .25em;"><span class="glyphicon glyphicon-trash"></span></button>
+  </form>
   {% endif %}
 
 <div class="inner">
@@ -22,14 +24,14 @@
     <input type="hidden" name="returnto" value="{{ returnto|escapekeyword }}"/>
   {% endif %}
 
-  {% if L.linkid != 0 %}
-    <input type="hidden" name="linkid" value="{{ L.linkid }}"/>
+  {% if L.id != 0 %}
+    <input type="hidden" name="linkid" value="{{ L.id }}"/>
   {% endif %}
 
   <table class="table linkedit">
     {% if error %}
     <tr>
-    <td colspan="3"><h4 class="alert">{{ error }}</h4></td>
+    <td colspan="3"><div class="alert alert-danger" role="alert">{{ error }}</div></td>
     </tr>
     {% endif %}
 
@@ -44,22 +46,17 @@
     <tr>
       <td>URL</td>
       <td>
-        <textarea name="url" rows="4" cols="50">{{ url or L._url }}</textarea>
+        <textarea name="url" rows="4" cols="50">{{ url or L.url }}</textarea>
       </td>
     </tr>
 
    <tr>
      <td>Lists</td>
      <td>
-     {% set listnames = L.listnames() or list(lists) %}
-      {% for t in listnames %}
-      {% set K = g_db.getList(t, create=False) %}
-      {% set flDirect = K and K.goesDirectlyTo(L) %}
-       <input type="checkbox" name="lists" checked="checked" value="{{ t }}">
-       <a href="/.{{ t|escapekeyword }}">
-       {% if flDirect %}<b>{% else %}<i>{% endif %}
-       {{ t }}
-       {% if flDirect %}</b>{% else %}</i>{% endif %}
+      {% for t in lists %}
+       <input type="checkbox" value={{ t['name'] }} name="lists" checked="checked">
+       <a href="/.{{ t['name'] }}">
+       <b>{{ t['name'] }}</b>
        </a></input>
        <br/>
       {% endfor %}
@@ -91,12 +88,12 @@ and <a href="http://docs.python.org/library/re.html#regular-expression-syntax">P
 
 </div>
 
-{{ clickstats(L) }}
-
 <br/>edits:
-{% for editTime, editor in L.edits %}
-<br/>&mdash;&nbsp;{{ editTime|time_t }} by {{ editor }}
+{% if L.edits %}
+{% for edit in L.edits[:5] %}
+<br/>&mdash;&nbsp;{{ edit.created_at|time_t }} by {{ edit.editor }}
 {% endfor %}
+{% endif %}
 
 <script type="application/javascript" src="/js/go.js"></script>
 {% endblock body %}

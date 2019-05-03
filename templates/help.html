@@ -9,10 +9,6 @@
 <span class="badge badge-important">{{ n }}</span>
 {%- endmacro %}
 
-{% set L = randomlink() %}
-{% set idx = 0 %}
-{% set usage = L.usage() %}
-
 {% block body %}
 
 <div class="row">
@@ -29,7 +25,7 @@
 <td><h4>Motivation</h4></td>
 <td>
 <p>Instead of having to publicize a long and winding URL like
-<code>{{ L.url()|truncate(140, "...") }}</code>,
+<code>{{ link.url|truncate(140, "...") }}</code>,
 
 
 you can simply create a go keyword like
@@ -126,13 +122,12 @@ variable overrides.</p> </td> </tr>
 <tr>
 <td>
 <b>
- <a title="{{ L.clickinfo() }}" class="pull-left fineprint" style="width: 1em;">
-#{% if idx > 0 %}{{ idx }}{% else %}&nbsp;{% endif %}</a>
+ <a title="{{ link.no_clicks }}" class="pull-left fineprint" style="width: 1em;"></a>
  </b>
- <div class="link" id="{{ L.linkid }}">
+ <div class="link" id="{{ link.id }}">
   <div class="shallow">
 
-    <a title="{{ L._url }}" href="{{ L.url() }}">
+    <a title="{{ link.url }}" href="{{ link.url }}">
       <div class="shallow example col-md-4">{{ badge(1) }}
        {% if usage != "" %}
           <b>go/{{ usage }}</b>
@@ -141,14 +136,13 @@ variable overrides.</p> </td> </tr>
        {% endif %}
       </div>
 
-      <div class="shallow col-md-8">{{ badge(2) }}{{ L.title or L._url|truncate(80, True) }}</div>
+      <div class="shallow col-md-8">{{ badge(2) }}{{ link.title or link.url|truncate(80, True) }}</div>
     </a>
   </div>
     <div class="fineprint shallow meta text">
     {{ badge(3) }}
-      {% for K in L.lists if K.name and K.usage() != usage: %}
-      {% set flDirect = K.goesDirectlyTo(L) %}
-      <a href="/.{{ K.name|escapekeyword }}" title="{{ K.clickinfo() }}">{% if flDirect %}<b>{{ K.usage() }}</b>{% else %}<i>{{ K.usage() }}</i>{% endif %}</a>
+      {% for LL in link.lists if LL.name and LL.usage != '' %}
+      <a href="/.{{ LL.name|escapekeyword }}" title="{{ LL.no_clicks }}"></b>{{ LL.usage }}</b></a>
       {% endfor %}
     </div>
 
@@ -159,13 +153,7 @@ variable overrides.</p> </td> </tr>
       <div class="pull-right">
       {{ badge(4) }}
       <a
-    {% if L.edits %}
-      {% set lastEditTime, lastEditName = L.lastEdit() %}
-      title="edited {{ lastEditTime|time_t }} by {{ lastEditName }}"
-    {% else %}
-      title="edit"
-    {% endif %}
-      href="/_edit_/{{ L.linkid }}">&#x2692;</a>
+      href="/_edit_/{{ link.id }}">&#x2692;</a>
     </div>
 
 </td>
@@ -205,7 +193,7 @@ link.</p>
     <tr>
       <td>Title {{ badge(1) }}</td>
       <td>
-        <input readonly="true" type="text" name="title" maxlength="140" size="50" value="{{ L.title }}"/>
+        <input readonly="true" type="text" name="title" maxlength="140" size="50" value="{{ link.title }}"/>
       </td>
       <td class="help"></td>
     </tr>
@@ -213,26 +201,13 @@ link.</p>
     <tr>
       <td>URL {{ badge(2) }}</td>
       <td>
-        <textarea readonly="true" name="url" rows="4" cols="50">{{ L._url }}</textarea>
+        <textarea readonly="true" name="url" rows="4" cols="50">{{ link.url }}</textarea>
       </td>
     </tr>
 
    <tr>
      <td>Lists</td>
      <td>
-     {% set listnames = L.listnames() or list(lists) %}
-      {% for idx, t in enumerate(listnames) %}
-      {% set K = g_db.getList(t, create=False) %}
-      {% set flDirect = K and K.goesDirectlyTo(L) %}
-        {% if idx == 0 %}{{ badge(3) }}{% endif %}
-        <input disabled="true" type="checkbox" name="lists" checked="checked" value="{{ t }}">
-        <a href="/.{{ t|escapekeyword }}">
-       {% if flDirect %}<b>{% else %}<i>{% endif %}
-       {{ t }}
-       {% if flDirect %}</b>{% else %}</i>{% endif %}
-       </a></input>
-       <br/>
-      {% endfor %}
       add to: {{ badge(4) }} <input readonly="true" type="text" name="otherlists" value="{{ otherlists }}"/> <i>(space-separated)</i>
      </td>
    </tr>

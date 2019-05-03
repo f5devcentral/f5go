@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 
 {% set username = getSSOUsername(False) %}
-{% set topLinks = byClicks(g_db.getNonFolders()) %}
-{% set folderLinks = byClicks(g_db.getSpecialLinks()) %}
 
 {% from "listinc.html" import renderlink %}
 
@@ -15,8 +13,8 @@
 
 <table class="table table-striped">
 <tr><td colspan="3"><h4 class="center"><a href="/special">Special Cases</a></h4></td></tr>
-{% for idx, link in enumerate(folderLinks[:15]): %}
-    {{ renderlink(idx + 1, link, username) }}
+{% for link in specials %}
+    {{ renderlink(specials.index(link) + 1, link, username) }}
 {% endfor %}
 </table>
 </div>
@@ -29,11 +27,10 @@
 <tr><td colspan="3"><h4 class="center"><a href="/toplinks?n=100">Recent Top Links</a></h4></td></tr>
 <!-- Check to see if topLinks is empty (new database) -->
 {% if topLinks %}
-    {% for idx, link in enumerate(topLinks[:8]): %}
-        {{ renderlink(idx+1, link, username) }}
-    {% endfor %}
-    {% for idx in sample(range(0, len(topLinks)), 1): %}
-        {{ renderlink(idx+1, topLinks[idx], username) }}
+    {% for link in topLinks %}
+    {% if link.no_clicks > 0 %}
+        {{ renderlink(topLinks.index(link)+1, link, username) }}
+    {% endif %}
     {% endfor %}
 {% endif %}
 </table>
@@ -44,11 +41,12 @@
 
 <h4>Lists used in last 30 days</h4>
 <div>
-  {% for LL in g_db.getAllLists() %}
+  {% for LL in allLists %}
+  <!-- LL.opacity(now) -->
   <div class="cloudli">
-    <a style="opacity: {{ LL.opacity(now) }};"
+    <a style="opacity: {{ opacity(LL) }};"
        href="/.{{ LL.name|escapekeyword }}"
-       title="{{ LL.clickinfo() }}">go/{{ LL.name }}{% if len(LL.links) > 1 %}({{ len(LL.links) }}){% endif %}</a>
+       title="{{ LL.no_clicks }}">go/{{ LL.name }}{% if len(LL.links) > 1 %}({{ len(LL.links) }}){% endif %}</a>
 </div>
 {% endfor %}
 </div>
