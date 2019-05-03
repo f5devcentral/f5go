@@ -267,6 +267,7 @@ class Root:
 
     @cherrypy.expose
     def _edit_(self, _id, **kwargs):
+
         link = self.db.query(RedirectLink).filter_by(id=_id).first()
 
         if link:
@@ -274,7 +275,7 @@ class Root:
 
         # edit new link
         # TODO redirect to _add_
-        return env.get_template("editlink.html").render(L=[], **kwargs)
+        return env.get_template("editlink.html").render(L=[], error=error, **kwargs)
 
     @cherrypy.expose
     def _editlist_(self, keyword):
@@ -296,8 +297,6 @@ class Root:
     @cherrypy.tools.allow(methods=['POST'])
     def _delete_(self, _id, returnto=""):
 
-        cherrypy.log('lucas is stupid {}'.format(_id))
-
         link = self.db.query(RedirectLink).filter_by(id=_id).first()
 
         if link:
@@ -316,15 +315,18 @@ class Root:
         title = kwargs.get('title', '')
         url = ''.join(kwargs.get('url', '').split())
         cherrypy.log(kwargs.get('returnto', ''))
+        lists = [kwargs.get('lists', [])]
+        lists.extend([set(kwargs.get('otherlists', []).split())])
 
         if title and url:
-            if self.db.query(RedirectLink).filter_by(url=url).first():
-                return 'URL already found with duplicate URL'
-
-            link = RedirectLink()
+            link = self.db.query(RedirectLink).filter_by(url=url).first()
+            if link:
+                return self._edit_(error='Link found with duplicate URL', _id=link.id)
 
             if kwargs.get('linkid', ''):
                 link = self.db.query(RedirectLink).filter_by(id=kwargs['linkid']).first()
+            else:
+                link = RedirectLink()
 
             if '{*}' in url:
                 link.regex = True
@@ -334,10 +336,8 @@ class Root:
 
             link.lists.clear()
 
-            otherlists = list(set(kwargs.get('otherlists', []).split()))
-            otherlists.append(kwargs.get('lists', []))
 
-            for l in otherlists:
+            for l in lists:
                 if link.regex and not l.endswith('/'):
                     l += '/'
 
