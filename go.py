@@ -292,13 +292,20 @@ class Root:
         return self.redirect("/." + keyword)
 
     @cherrypy.expose
+    # TODO use CRUD methods in rewrite
+    @cherrypy.tools.allow(methods=['POST'])
     def _delete_(self, _id, returnto=""):
 
-        try:
-            self.db.query(RedirectLink).filter_by(id=_id).delete()
-            self.db.commit()
-        except IntegrityError:
-            cherrypy.log('Unable to delete RedirectLink with ID {}'.format(_id))
+        cherrypy.log('lucas is stupid {}'.format(_id))
+
+        link = self.db.query(RedirectLink).filter_by(id=_id).first()
+
+        if link:
+            self.db.delete(link)
+            try:
+                self.db.commit()
+            except IntegrityError:
+                cherrypy.log('Unable to delete RedirectLink with ID {}'.format(_id))
 
         return self.redirect("/." + returnto)
 
@@ -308,8 +315,11 @@ class Root:
 
         title = kwargs.get('title', '')
         url = ''.join(kwargs.get('url', '').split())
+        cherrypy.log(kwargs.get('returnto', ''))
 
         if title and url:
+            if self.db.query(RedirectLink).filter_by(url=url).first():
+                return 'URL already found with duplicate URL'
 
             link = RedirectLink()
 
@@ -340,7 +350,12 @@ class Root:
                 self.db.add(LL)
 
             self.db.add(link)
-            self.db.flush()
+            try:
+                self.db.flush()
+            except IntegrityError:
+                self.db.rollback()
+                cherrypy.log("IntegrityError, unable to commit to database", traceback=True)
+                return self._add_(**kwargs)
 
             edit = Edit(link_id=link.id,
                         editor=getSSOUsername())

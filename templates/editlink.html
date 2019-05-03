@@ -13,7 +13,9 @@
 <div class="panel panel-default">
 
   {% if L.id != 0 %}
-  <a class="pull-right" id="delete" style="margin-right: .25em;" href="/_delete_/{{ L.id }}?returnto={{ returnto }}"><span class="glyphicon glyphicon-trash"></span></a>
+  <form action="/_delete_/{{ L.id }}?returnto={{ returnto }}" method="POST">
+    <button type="submit" class="pull-right" id="delete" style="margin-right: .25em;"><span class="glyphicon glyphicon-trash"></span></button>
+  </form>
   {% endif %}
 
 <div class="inner">
