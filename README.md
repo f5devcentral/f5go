@@ -16,7 +16,7 @@ Features include:
 ## Required Packages
 
 ```
-jinaj2
+jinja2
 cherrypy
 CherryPy-SQLAlchemy
 psycopg2-binary
