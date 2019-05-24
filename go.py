@@ -79,7 +79,7 @@ def deampify(s):
 
 
 def escapeascii(s):
-    return html.escape(s).encode("ascii", "xmlcharrefreplace")
+    return html.escape(s)
 
 
 def randomlink():
