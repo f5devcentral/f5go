@@ -127,6 +127,16 @@ class GeneralTestCases(unittest.TestCase):
         expected = "%27test%27"
         self.assertEqual(expected, go.escapekeyword(keyword))
 
+    def test_escapeascii(self):
+        """
+        convert &, <, and > to html safe sequences
+        see https://docs.python.org/3/library/html.html
+        """
+        keyword = "&<>foobar"
+        expected = "&amp;&lt;&gt;foobar"
+        self.assertEqual(expected, go.escapeascii(keyword))
+
+
     def test_canonicalUrl_should_return_none(self):
         """
         When None is passed in None should be returned
