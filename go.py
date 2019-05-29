@@ -1007,7 +1007,7 @@ class Root:
             # only modify lists; other fields will only be set if there
             # is no original
 
-            combinedlists = {[x.name for x in link.lists]} | set(lists)
+            combinedlists = {x.name for x in link.lists} | set(lists)
 
             fields = {'title': link.title or title,
                       'lists': " ".join(combinedlists),
