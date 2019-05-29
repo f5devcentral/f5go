@@ -578,12 +578,7 @@ class LinkDatabase:
         self._nextlinkid += 1
         return r
 
-    def addRegexList(self, regex=None, url=None, desc=None, owner=""):
-        r = RegexList(self.nextlinkid(), regex)
-        r._url = url
-        self._addRegexList(r, owner)
-
-    def _addRegexList(self, r, owner):
+    def _addRegexList(self, r):
         self.regexes[r.regex] = r
         self._addList(r)     # add to all indexes
 
@@ -693,7 +688,7 @@ class LinkDatabase:
         if listname not in self.regexes:
             if not create:
                 return None
-            self._addRegexList(RegexList(self.nextlinkid(), listname), "")
+            self._addRegexList(RegexList(self.nextlinkid(), listname))
 
         return self.regexes[listname]
 
