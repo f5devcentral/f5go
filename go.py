@@ -22,10 +22,11 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import configparser
-import cherrypy
-import jinja2
 import shutil
 import html
+
+import cherrypy
+import jinja2
 
 
 config = configparser.ConfigParser()
@@ -38,18 +39,15 @@ cfg_port = config.getint('goconfig', 'cfg_port')
 cfg_urlSSO = config.get('goconfig', 'cfg_urlSSO')
 cfg_urlEditBase = "https://" + cfg_hostname
 cfg_sslEnabled = False # default to False
-try:
+if config.has_option('goconfig', 'cfg_sslEnabled'):
     cfg_sslEnabled = config.getboolean('goconfig', 'cfg_sslEnabled')
-except:
-    # just preventing from crashing if the cfg option doesn't exist since technically it's optional
-    pass
 cfg_sslCertificate = config.get('goconfig', 'cfg_sslCertificate')
 cfg_sslPrivateKey = config.get('goconfig', 'cfg_sslPrivateKey')
 cfg_contactEmail = config.get('goconfig', 'cfg_contactEmail')
 cfg_contactName = config.get('goconfig', 'cfg_contactName')
 cfg_customDocs = config.get('goconfig', 'cfg_customDocs')
 
-class MyGlobals(object):
+class MyGlobals():
     def __init__(self):
         self.db_hnd = None
 
@@ -101,12 +99,11 @@ def prettyday(d):
     s = today() - d
     if s < 1:
         return 'today'
-    elif s < 2:
+    if s < 2:
         return 'yesterday'
-    elif s < 60:
+    if s < 60:
         return '%d days ago' % s
-    else:
-        return '%d months ago' % (s / 30)
+    return '%d months ago' % (s / 30)
 
 
 def prettytime(t):
@@ -116,21 +113,19 @@ def prettytime(t):
     dt = time.time() - t
     if dt < 24*3600:
         return 'today'
-    elif dt < 2 * 24*3600:
+    if dt < 2 * 24*3600:
         return 'yesterday'
-    elif dt < 60 * 24*3600:
+    if dt < 60 * 24*3600:
         return '%d days ago' % (dt / (24 * 3600))
-    else:
-        return '%d months ago' % (dt / (30 * 24*3600))
+    return '%d months ago' % (dt / (30 * 24*3600))
 
 
 def makeList(s):
     if isinstance(s, str):
         return [s]
-    elif isinstance(s, list):
+    if isinstance(s, list):
         return s
-    else:
-        return list(s)
+    return list(s)
 
 
 def canonicalUrl(url):
@@ -207,7 +202,7 @@ def getSSOUsername(redirect=True):
         raise cherrypy.HTTPRedirect(cfg_urlSSO + urllib.parse.quote(redirect, safe=":/"))
 
     sso = urllib.parse.unquote(cherrypy.request.cookie["issosession"].value)
-    session = list(map(base64.b64decode, string.split(sso, "-")))
+    session = list(map(base64.b64decode, sso.split("-")))
     return session[0]
 
 
@@ -227,19 +222,18 @@ class Clickable:
     def __getattr__(self, attrname):
         if attrname == "totalClicks":
             return self.archivedClicks + sum(self.clickData.values())
-        elif attrname == "recentClicks":
+        if attrname == "recentClicks":
             return sum(self.clickData.values())
-        elif attrname == "lastClickTime":
+        if attrname == "lastClickTime":
             if not self.clickData:
                 return 0
             maxk = max(self.clickData.keys())
             return time.mktime(datetime.date.fromordinal(maxk).timetuple())
-        elif attrname == "lastClickDay":
+        if attrname == "lastClickDay":
             if not self.clickData:
                 return 0
             return max(self.clickData.keys())
-        else:
-            raise AttributeError(attrname)
+        raise AttributeError(attrname)
 
     def clicked(self, n=1):
         """
@@ -353,13 +347,10 @@ class Link(Clickable):
             kw = self.mainKeyword()
             if kw:
                 return "/.%s" % escapekeyword(kw.name)
-            else:
-                return ""
-        else:
-            if self.linkid > 0:
-                return "/_link_/%s" % self.linkid
-            else:
-                return self._url
+            return ""
+        if self.linkid > 0:
+            return "/_link_/%s" % self.linkid
+        return self._url
 
     def url(self, keyword=None, args=None):
         remainingPath = (keyword or cherrypy.request.path_info).split("/")[2:]
@@ -452,26 +443,25 @@ class ListOfLinks(Link):
     def getDefaultLink(self):
         if not self._url or self._url == "list":
             return None
-        elif self._url == "top":
+        if self._url == "top":
             return self.getPopularLinks()[0]
-        elif self._url == "random":
+        if self._url == "random":
             return random.choice(self.links)
-        elif self._url == "freshest":
+        if self._url == "freshest":
             return self.getRecentLinks()[0]
-        else:
-            return g_db.getLink(self._url)
+        return g_db.getLink(self._url)
 
     def url(self, keyword=None, args=None):
         if not self._url or self._url == "list":
             return None
-        elif self._url == "top":
+        if self._url == "top":
             return self.getPopularLinks()[0].url(keyword, args)
-        elif self._url == "random":
+        if self._url == "random":
             return random.choice(self.links).url(keyword, args)
-        elif self._url == "freshest":
+        if self._url == "freshest":
             return self.getRecentLinks()[0].url(keyword, args)
-        else:  # should be a linkid
-            return "/_link_/" + self._url
+        # should be a linkid
+        return "/_link_/" + self._url
 
     def goesDirectlyTo(self, link):
         return self._url == str(link.linkid) or self.url() == link.url()
@@ -601,7 +591,7 @@ class LinkDatabase:
         if url in self.linksByUrl:
             raise RuntimeError("existing url")
 
-        if type(lists) == str:
+        if isinstance(lists, str):
             lists = lists.split()
 
         link = Link(self.nextlinkid(), url, title)
@@ -736,9 +726,10 @@ class LinkDatabase:
         print("importing from %s" % fn)
         with open(fn, "r") as f:
             for l in f.readlines():
-                if not l.strip(): continue
+                if not l.strip():
+                    continue
                 print(l.strip())
-                a, b = string.split(l, " ", 1)
+                a, b = l.split(" ", 1)
                 if a == "regex":
                     R = RegexList(self.nextlinkid())
                     R._import(b)
@@ -747,7 +738,7 @@ class LinkDatabase:
                     L._import(b)
                     self._addLink(L)
                 elif a == "list":
-                    listname, rest = string.split(b, " ", 1)
+                    listname, rest = b.split(" ", 1)
                     if listname in self.lists:
                         LL = self.lists[listname]
                     else:
@@ -865,15 +856,15 @@ class Root:
 
                 # serve up empty fake list
                 return env.get_template('list.html').render(L=ListOfLinks(0), keyword=kw)
-            elif len(matches) == 1:
+            if len(matches) == 1:
                 R, L, genL = matches[0]  # actual regex, generated link
                 R.clicked()
                 L.clicked()
                 return self.redirect(deampify(genL.url()))
-            else:  # len(matches) > 1
-                LL = ListOfLinks(-1)  # -1 means non-editable
-                LL.links = [genL for R, L, genL in matches]
-                return env.get_template('list.html').render(L=LL, keyword=keyword)
+            # len(matches) > 1
+            LL = ListOfLinks(-1)  # -1 means non-editable
+            LL.links = [genL for R, L, genL in matches]
+            return env.get_template('list.html').render(L=LL, keyword=keyword)
 
         listtarget = ll.getDefaultLink()
 
@@ -970,7 +961,7 @@ class Root:
         # remove any whitespace/newlines in url
         url = "".join(url.split())
 
-        if type(lists) not in [tuple, list]:
+        if not isinstance(lists, (tuple, list)):
             lists = [lists]
 
         lists.extend(otherlists.split())
@@ -988,7 +979,7 @@ class Root:
                         listname += "/"
                 try:
                     newlistset.append(g_db.getList(listname, create=True))
-                except:
+                except InvalidKeyword:
                     return self.redirectToEditLink(error="invalid keyword '%s'" % listname, **kwargs)
 
             for LL in newlistset:
