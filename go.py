@@ -733,9 +733,9 @@ class LinkDatabase:
                     L._import(b)
                     self._addLink(L)
                 elif a == "list":
-                    listname, rest = b.split(" ", 1)
-                    if listname in self.lists:
-                        LL = self.lists[listname]
+                    listname = b.split(" ", 1)
+                    if listname[0] in self.lists:
+                        LL = self.lists[listname[0]]
                     else:
                         LL = ListOfLinks(self.nextlinkid())
                     LL._import(b)
@@ -948,13 +948,12 @@ class Root:
         linkid = kwargs.get("linkid", "")
         title = escapeascii(kwargs.get("title", ""))
         lists = kwargs.get("lists", [])
-        url = kwargs.get("url", "")
+
+        # remove any whitespace/newlines in url
+        url = ''.join(kwargs.get("url", "").split())
         otherlists = kwargs.get("otherlists", "")
 
         returnto = kwargs.get("returnto", "")
-
-        # remove any whitespace/newlines in url
-        url = "".join(url.split())
 
         if not isinstance(lists, (tuple, list)):
             lists = [lists]
