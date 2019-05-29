@@ -267,7 +267,7 @@ class Clickable:
     def _import(self, s):
         archivedClicks, clickdict = s.split(",", 1)
         self.archivedClicks = int(archivedClicks)
-        self.clickData = eval(clickdict)
+        self.clickData = int(clickdict)
         return self
 
 
