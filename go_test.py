@@ -177,8 +177,13 @@ class GeneralTestCases(unittest.TestCase):
         self.assertEqual(url, go.sanitary(url))
 
     def test_getSSOUsername_should_return_testuser(self):
-        # TODO: Will have to be changed if/when SSO is made generic
-        self.assertEqual("testuser", go.getSSOUsername())
+        # Force SSO disabled for this test so it returns the placeholder user
+        prev = go.cfg_urlSSO
+        try:
+            go.cfg_urlSSO = None
+            self.assertEqual("testuser", go.getSSOUsername())
+        finally:
+            go.cfg_urlSSO = prev
 
 
 class LinkTestCases(unittest.TestCase):

@@ -1,0 +1,12 @@
+FROM python:3.11-slim-trixie
+
+# Set up a working directory
+WORKDIR /app
+
+# Copy project files
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+
+# Default command to run tests
+CMD ["python", "-m", "unittest", "-v", "go_test.py"]
