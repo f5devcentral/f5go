@@ -1,0 +1,11 @@
+.git
+.git*
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.swp
+.DS_Store
+.env
+godb.pickle
+newterms.txt

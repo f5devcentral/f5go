@@ -36,13 +36,13 @@ cfg_urlFavicon = config.get('goconfig', 'cfg_urlFavicon')
 cfg_hostname = config.get('goconfig', 'cfg_hostname')
 cfg_port = config.getint('goconfig', 'cfg_port')
 cfg_urlSSO = config.get('goconfig', 'cfg_urlSSO')
-cfg_urlEditBase = "https://" + cfg_hostname
 cfg_sslEnabled = False # default to False
 try:
     cfg_sslEnabled = config.getboolean('goconfig', 'cfg_sslEnabled')
 except:
     # just preventing from crashing if the cfg option doesn't exist since technically it's optional
     pass
+cfg_urlEditBase = ("https://" if cfg_sslEnabled else "http://") + cfg_hostname
 cfg_sslCertificate = config.get('goconfig', 'cfg_sslCertificate')
 cfg_sslPrivateKey = config.get('goconfig', 'cfg_sslPrivateKey')
 cfg_contactEmail = config.get('goconfig', 'cfg_contactEmail')
@@ -106,7 +106,7 @@ def prettyday(d):
     elif s < 60:
         return '%d days ago' % s
     else:
-        return '%d months ago' % (s / 30)
+        return '%d months ago' % (s // 30)
 
 
 def prettytime(t):
@@ -119,9 +119,9 @@ def prettytime(t):
     elif dt < 2 * 24*3600:
         return 'yesterday'
     elif dt < 60 * 24*3600:
-        return '%d days ago' % (dt / (24 * 3600))
+        return '%d days ago' % int(dt // (24 * 3600))
     else:
-        return '%d months ago' % (dt / (30 * 24*3600))
+        return '%d months ago' % int(dt // (30 * 24*3600))
 
 
 def makeList(s):
@@ -207,8 +207,15 @@ def getSSOUsername(redirect=True):
         raise cherrypy.HTTPRedirect(cfg_urlSSO + urllib.parse.quote(redirect, safe=":/"))
 
     sso = urllib.parse.unquote(cherrypy.request.cookie["issosession"].value)
-    session = list(map(base64.b64decode, string.split(sso, "-")))
-    return session[0]
+    session = list(map(base64.b64decode, sso.split('-')))
+    user = session[0]
+    if isinstance(user, (bytes, bytearray)):
+        try:
+            user = user.decode('utf-8')
+        except Exception:
+            # Fallback to latin-1 to avoid crashing on unexpected encodings
+            user = user.decode('latin-1', errors='ignore')
+    return user
 
 
 class Clickable:
@@ -304,7 +311,7 @@ class Link(Clickable):
         a = "+".join(self._url.split())
         b = "||".join([x.name for x in self.lists]) or "None"
         c = Clickable._export(self)
-        d = ",".join(["%d/%s" % x for x in self.edits]) or "None"
+        d = ",".join(["%d/%s" % (int(ts), name) for ts, name in self.edits]) or "None"
         e = self.title
 
         return "link %s %s %s %s %s" % (a, b, c, d, e)
@@ -738,7 +745,7 @@ class LinkDatabase:
             for l in f.readlines():
                 if not l.strip(): continue
                 print(l.strip())
-                a, b = string.split(l, " ", 1)
+                a, b = l.split(" ", 1)
                 if a == "regex":
                     R = RegexList(self.nextlinkid())
                     R._import(b)
@@ -747,7 +754,7 @@ class LinkDatabase:
                     L._import(b)
                     self._addLink(L)
                 elif a == "list":
-                    listname, rest = string.split(b, " ", 1)
+                    listname, rest = b.split(" ", 1)
                     if listname in self.lists:
                         LL = self.lists[listname]
                     else:
